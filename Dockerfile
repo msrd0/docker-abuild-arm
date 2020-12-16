@@ -1,4 +1,5 @@
 FROM alpine:3.12 AS abuild
+SHELL ["/bin/ash", "-e", "-o", "pipefail", "-c"]
 
 # install basic dependencies
 RUN sed -i 's,http:,https:,g' /etc/apk/repositories \
@@ -27,9 +28,13 @@ COPY alpine-devel@lists.alpinelinux.org-58199dcc.rsa.pub /etc/apk/keys/
 # new stage for bootstrapping
 FROM abuild AS bootstrap
 
+ARG JOBS=
+
 RUN abuild-apk update \
- && echo "export JOBS=$(lscpu -p | grep -E '^[^#]' | wc -l)" >>.abuild/abuild.conf \
- && echo "export MAKEFLAGS=-j$JOBS" >>.abuild/abuild.conf
+ && [ -n "$JOBS" ] || JOBS="$(lscpu -p | grep -E '^[^#]' | wc -l)" \
+ && echo "export JOBS=$JOBS" >>.abuild/abuild.conf \
+ && echo 'export MAKEFLAGS=-j$JOBS' >>.abuild/abuild.conf \
+ && cat .abuild/abuild.conf
 
 # create the sysroot
 RUN mkdir -p "$CBUILDROOT/etc/apk/keys" \

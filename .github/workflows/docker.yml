@@ -9,9 +9,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - uses: mxschmitt/action-tmate@v3
-      
-      - run: |
-          docker build . --tag ghcr.io/msrd0/abuild-aarch64
+      - name: Build and Push Docker Image
+        run: |
+          docker build . \
+            --pull \
+            --tag ghcr.io/msrd0/abuild-aarch64 \
+            --build-arg JOBS=2 \
+            --memory $(( 6500 * 1024 * 1024 ))
+          
           docker login -u msrd0 -p "${{ secrets.GHCR_TOKEN }}" ghcr.io
           docker push ghcr.io/msrd0/abuild-aarch64
