@@ -1,23 +1,22 @@
 FROM alpine:3.12 AS abuild
 SHELL ["/bin/ash", "-e", "-o", "pipefail", "-c"]
 
-# install basic dependencies
-RUN sed -i 's,http:,https:,g' /etc/apk/repositories \
- && apk add --no-cache alpine-sdk sudo util-linux
-
-# create build user
 ENV USERNAME=docker-abuild-aarch64
 ENV USERHOME=/home/docker-abuild-aarch64
-RUN adduser -D "$USERNAME" -h "$USERHOME" \
+RUN sed -i 's,http:,https:,g' /etc/apk/repositories \
+ && apk add --no-cache alpine-sdk sudo util-linux \
+ && adduser -D "$USERNAME" -h "$USERHOME" \
  && addgroup "$USERNAME" abuild \
- && echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" >/etc/sudoers \
+ && echo "root ALL=(ALL) ALL" >/etc/sudoers \
+ && echo "%abuild ALL=(ALL) NOPASSWD: ALL" >>/etc/sudoers \
  && mkdir -p /var/cache/distfiles \
  && chgrp abuild /var/cache/distfiles \
- && chmod 775 /var/cache/distfiles
+ && chmod 775 /var/cache/distfiles \
+ && mkdir -p "$USERHOME/.abuild" \
+ && echo "$USERHOME/.abuild/docker-abuild-aarch64.rsa" | abuild-keygen -i -b 4096 \
+ && chown -R "$USERNAME:$USERNAME" "$USERHOME/.abuild"
 USER docker-abuild-aarch64
 WORKDIR /home/docker-abuild-aarch64
-RUN mkdir -p .abuild \
- && echo "$HOME/.abuild/docker-abuild-aarch64.rsa" | abuild-keygen -a -i -b 4096
 
 # sysroot preparations
 ENV CTARGET=aarch64
@@ -32,6 +31,8 @@ ARG JOBS=
 
 RUN abuild-apk update \
  && [ -n "$JOBS" ] || JOBS="$(lscpu -p | grep -E '^[^#]' | wc -l)" \
+ && echo 'REPODEST="$HOME/packages-aarch64"' >.abuild/abuild.conf \
+ && echo "PACKAGER_PRIVKEY=\"$HOME/.abuild/docker-abuild-aarch64.rsa\"" >>.abuild/abuild.conf \
  && echo "export JOBS=$JOBS" >>.abuild/abuild.conf \
  && echo 'export MAKEFLAGS=-j$JOBS' >>.abuild/abuild.conf \
  && cat .abuild/abuild.conf
@@ -67,14 +68,21 @@ RUN EXTRADEPENDS_TARGET="musl musl-dev" BOOTSTRAP=nobase APKBUILD=aports/main/gc
 # cross-build base
 RUN BOOTSTRAP=nobase APKBUILD=aports/main/build-base/APKBUILD abuild -r
 
-# remove the aarch64 repo - those can come from the official alpine repo
-RUN rm -r "$HOME/packages/main/aarch64"
-
-# install build-base on our sysroot
-RUN abuild-apk add --arch "$CTARGET" --root "$CBUILDROOT" build-base
+# cleanup aarch64 packages - those come from the alpine repositories
+RUN rm -r "$HOME/packages-aarch64/main/aarch64"
 
 # last stage - pull the packages and sysroot
 FROM abuild
 
+USER root
 COPY --from=bootstrap /home/docker-abuild-aarch64/sysroot-aarch64 /home/docker-abuild-aarch64/sysroot-aarch64
-COPY --from=bootstrap /home/docker-abuild-aarch64/packages /home/docker-abuild-aarch64/packages
+COPY --from=bootstrap /home/docker-abuild-aarch64/packages-aarch64 /home/docker-abuild-aarch64/packages-aarch64
+RUN echo "/home/docker-abuild-aarch64/packages-aarch64/main" >>/etc/apk/repositories
+
+ENV CHOST=aarch64
+ENV EXTRADEPENDS_TARGET="build-base"
+
+USER docker-abuild-aarch64
+COPY entrypoint.sh /
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/bin/ash"]

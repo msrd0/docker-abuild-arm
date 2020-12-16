@@ -11,6 +11,7 @@ best I could find are some posts and questions that point to
 [this bootstrapping script](https://github.com/alpinelinux/aports/blob/master/scripts/bootstrap.sh)
 which I then converted into a docker image - except I'm using as much precompiled stuff as possible.
 
-This docker image has the environment variables `CTARGET` and `CBUILDROOT` set already. So, your cross-enabled package
-should be able to compile just fine, if you are using one of the languages supported by GCC. If you need any other
-compilers, feel free to create a PR that adds support for your programming language.
+This docker image has the environment variables `CHOST`, `CTARGET`, `CBUILDROOT` and `EXTRADEPENDS_TARGET` are set for
+you. That means your cross-enabled package should be able to compile just fine, if you are using one of the languages
+supported by GCC. If you need any other compilers, feel free to create a PR that adds support for your programming
+language.
