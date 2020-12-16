@@ -9,6 +9,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
+      - uses: mxschmitt/action-tmate@v3
+      
       - run: |
           docker build . --tag ghcr.io/msrd0/abuild-aarch64
           docker login -u msrd0 -p "${{ secrets.GHCR_TOKEN }}" ghcr.io
