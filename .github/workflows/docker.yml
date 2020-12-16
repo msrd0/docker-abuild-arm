@@ -1,0 +1,15 @@
+name: Docker
+on:
+  push:
+    branches: [master]
+
+jobs:
+  docker:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      
+      - run: |
+          docker build . --tag ghcr.io/msrd0/abuild-aarch64
+          docker login -u msrd0 -p "${{ secrets.GHCR_TOKEN }}" ghcr.io
+          docker push ghcr.io/msrd0/abuild-aarch64
