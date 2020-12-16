@@ -1,10 +1,8 @@
-FROM alpine:3.12
-
-# NOTE: never pass --no-cache to apk as abuild cannot deal with that
+FROM alpine:3.12 AS abuild
 
 # install basic dependencies
 RUN sed -i 's,http:,https:,g' /etc/apk/repositories \
- && apk add alpine-sdk sudo util-linux
+ && apk add --no-cache alpine-sdk sudo util-linux
 
 # create build user
 ENV USERNAME=docker-abuild-aarch64
@@ -18,20 +16,27 @@ RUN adduser -D "$USERNAME" -h "$USERHOME" \
 USER docker-abuild-aarch64
 WORKDIR /home/docker-abuild-aarch64
 RUN mkdir -p .abuild \
- && echo "$HOME/.abuild/docker-abuild-aarch64.rsa" | abuild-keygen -a -i -b 4096 \
- && echo "export JOBS=$(lscpu -p | grep -E '^[^#]' | wc -l)" >>.abuild/abuild.conf \
- && echo "export MAKEFLAGS=-j$JOBS" >>.abuild/abuild.conf
+ && echo "$HOME/.abuild/docker-abuild-aarch64.rsa" | abuild-keygen -a -i -b 4096
 
-# create the sysroot
+# sysroot preparations
 ENV CTARGET=aarch64
 ENV CBUILDROOT=/home/docker-abuild-aarch64/sysroot-aarch64
 COPY alpine-devel@lists.alpinelinux.org-524d27bb.rsa.pub /etc/apk/keys/
 COPY alpine-devel@lists.alpinelinux.org-58199dcc.rsa.pub /etc/apk/keys/
+
+# new stage for bootstrapping
+FROM abuild AS bootstrap
+
+RUN abuild-apk update \
+ && echo "export JOBS=$(lscpu -p | grep -E '^[^#]' | wc -l)" >>.abuild/abuild.conf \
+ && echo "export MAKEFLAGS=-j$JOBS" >>.abuild/abuild.conf
+
+# create the sysroot
 RUN mkdir -p "$CBUILDROOT/etc/apk/keys" \
  && cp /etc/apk/keys/* "$CBUILDROOT/etc/apk/keys/" \
  && echo "https://dl-cdn.alpinelinux.org/alpine/v3.12/main" >"$CBUILDROOT/etc/apk/repositories" \
  && echo "https://dl-cdn.alpinelinux.org/alpine/v3.12/community" >>"$CBUILDROOT/etc/apk/repositories" \
- && abuild-apk add --initdb --arch "$CTARGET" --root "$CBUILDROOT" libgcc libstdc++ musl-dev
+ && abuild-apk add --initdb --arch "$CTARGET" --root "$CBUILDROOT"
 
 # download aports
 RUN git clone --depth=1 --branch=3.12-stable https://gitlab.alpinelinux.org/alpine/aports.git
@@ -56,3 +61,15 @@ RUN EXTRADEPENDS_TARGET="musl musl-dev" BOOTSTRAP=nobase APKBUILD=aports/main/gc
 
 # cross-build base
 RUN BOOTSTRAP=nobase APKBUILD=aports/main/build-base/APKBUILD abuild -r
+
+# remove the aarch64 repo - those can come from the official alpine repo
+RUN rm -r "$HOME/packages/main/aarch64"
+
+# install build-base on our sysroot
+RUN abuild-apk add --arch "$CTARGET" --root "$CBUILDROOT" build-base
+
+# last stage - pull the packages and sysroot
+FROM abuild
+
+COPY --from=bootstrap /home/docker-abuild-aarch64/sysroot-aarch64 /home/docker-abuild-aarch64/sysroot-aarch64
+COPY --from=bootstrap /home/docker-abuild-aarch64/packages /home/docker-abuild-aarch64/packages
