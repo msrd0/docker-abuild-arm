@@ -1,4 +1,4 @@
-FROM alpine:3.12 AS abuild
+FROM alpine:3.13 AS abuild
 SHELL ["/bin/ash", "-e", "-o", "pipefail", "-c"]
 
 ENV USERNAME=docker-abuild-aarch64
@@ -40,24 +40,22 @@ RUN abuild-apk update \
 # create the sysroot
 RUN mkdir -p "$CBUILDROOT/etc/apk/keys" \
  && cp /etc/apk/keys/* "$CBUILDROOT/etc/apk/keys/" \
- && echo "https://dl-cdn.alpinelinux.org/alpine/v3.12/main" >"$CBUILDROOT/etc/apk/repositories" \
- && echo "https://dl-cdn.alpinelinux.org/alpine/v3.12/community" >>"$CBUILDROOT/etc/apk/repositories" \
+ && echo "https://dl-cdn.alpinelinux.org/alpine/v3.13/main" >"$CBUILDROOT/etc/apk/repositories" \
+ && echo "https://dl-cdn.alpinelinux.org/alpine/v3.13/community" >>"$CBUILDROOT/etc/apk/repositories" \
  && abuild-apk add --initdb --arch "$CTARGET" --root "$CBUILDROOT"
 
 # download aports
-RUN git clone --depth=1 --branch=3.12-stable https://gitlab.alpinelinux.org/alpine/aports.git
+RUN git clone --depth=1 --branch=3.13-stable https://gitlab.alpinelinux.org/alpine/aports.git
 
-# cross-build binutils - patch builddir not set on 3.12 branch
-RUN sed -i 's,build(),builddir="$srcdir/binutils-$pkgver"\nbuild(),g' aports/main/binutils/APKBUILD \
- && BOOTSTRAP=nobase APKBUILD=aports/main/binutils/APKBUILD abuild -r
+# cross-build binutils
+RUN BOOTSTRAP=nobase APKBUILD=aports/main/binutils/APKBUILD abuild -r
 
 # musl headers
 RUN CHOST=aarch64 BOOTSTRAP=nocc APKBUILD=aports/main/musl/APKBUILD abuild -r
 
-# minimal gcc - ada/gnat is broken for cross compile on 3.12 branch
+# minimal gcc
 ENV LANG_ADA=false
-RUN sed -E -i 's,(makedepends_host="[^"]*)\s+\S+gnat\S+("),\1\2,g' aports/main/gcc/APKBUILD \
- && EXTRADEPENDS_HOST=musl-dev BOOTSTRAP=nolibc APKBUILD=aports/main/gcc/APKBUILD abuild -r
+RUN EXTRADEPENDS_HOST=musl-dev BOOTSTRAP=nolibc APKBUILD=aports/main/gcc/APKBUILD abuild -r
 
 # cross-build musl
 RUN EXTRADEPENDS_BUILD="gcc-pass2-$CTARGET" CHOST="$CTARGET" BOOTSTRAP=nolibc APKBUILD=aports/main/musl/APKBUILD abuild -r
