@@ -23,6 +23,7 @@ jobs:
           docker build . \
             --pull \
             $tags \
+            --build-arg ALPINE_VERSION=${{ matrix.alpine_version }} \
             --build-arg JOBS=2 \
             --memory $(( 6500 * 1024 * 1024 ))
           
