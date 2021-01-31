@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        alpine_version: ["3.12", "3.13"]
+        alpine_version: ["3.13"]
         latest_alpine_version: ["3.13"]
     steps:
       - uses: actions/checkout@v2

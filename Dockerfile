@@ -41,12 +41,12 @@ RUN abuild-apk update \
 # create the sysroot
 RUN mkdir -p "$CBUILDROOT/etc/apk/keys" \
  && cp /etc/apk/keys/* "$CBUILDROOT/etc/apk/keys/" \
- && echo "https://dl-cdn.alpinelinux.org/alpine/v3.13/main" >"$CBUILDROOT/etc/apk/repositories" \
- && echo "https://dl-cdn.alpinelinux.org/alpine/v3.13/community" >>"$CBUILDROOT/etc/apk/repositories" \
+ && echo "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_VERSION/main" >"$CBUILDROOT/etc/apk/repositories" \
+ && echo "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_VERSION/community" >>"$CBUILDROOT/etc/apk/repositories" \
  && abuild-apk add --initdb --arch "$CTARGET" --root "$CBUILDROOT"
 
 # download aports
-RUN git clone --depth=1 --branch=3.13-stable https://gitlab.alpinelinux.org/alpine/aports.git
+RUN git clone --depth=1 --branch=$ALPINE_VERSION-stable https://gitlab.alpinelinux.org/alpine/aports.git
 
 # cross-build binutils
 RUN BOOTSTRAP=nobase APKBUILD=aports/main/binutils/APKBUILD abuild -r
