@@ -1,11 +1,12 @@
 ARG ALPINE_VERSION=3.13
 FROM alpine:$ALPINE_VERSION AS abuild
+ARG ALPINE_VERSION=3.13
 ENV ALPINE_VERSION=$ALPINE_VERSION
 SHELL ["/bin/ash", "-e", "-o", "pipefail", "-c"]
 
 ENV USERNAME=docker-abuild-aarch64
 ENV USERHOME=/home/docker-abuild-aarch64
-RUN test -n "$ALPINE_VERSION" \
+RUN env && test -n "$ALPINE_VERSION" \
  && sed -i 's,http:,https:,g' /etc/apk/repositories \
  && apk add --no-cache alpine-sdk sudo util-linux \
  && adduser -D "$USERNAME" -h "$USERHOME" \
