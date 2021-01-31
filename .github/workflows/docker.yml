@@ -5,17 +5,32 @@ on:
 
 jobs:
   docker:
+    name: docker-${{ matrix.alpine_version }}
     runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        alpine_version: ["3.12", "3.13"]
+        latest_alpine_version: ["3.13"]
     steps:
       - uses: actions/checkout@v2
       
       - name: Build and Push Docker Image
         run: |
+          image="ghcr.io/msrd0/abuild-aarch64"
+          tags="--tag $image:${{ matrix.alpine_version }}"
+          [ "${{ matrix.alpine_version }}" == "${{ matrix.latest_alpine_version }}" ] && tags="$tag --tag $image"
           docker build . \
             --pull \
-            --tag ghcr.io/msrd0/abuild-aarch64 \
+            $tags \
             --build-arg JOBS=2 \
             --memory $(( 6500 * 1024 * 1024 ))
           
           docker login -u msrd0 -p "${{ secrets.GHCR_TOKEN }}" ghcr.io
-          docker push ghcr.io/msrd0/abuild-aarch64
+          for tag in $tags
+          do
+            if [ "$tag" != "--tag" ]
+            then
+              docker push ghcr.io/msrd0/abuild-aarch64
+            fi
+          done

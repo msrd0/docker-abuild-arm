@@ -1,4 +1,5 @@
-FROM alpine:3.13 AS abuild
+ARG ALPINE_VERSION=3.13
+FROM alpine:$ALPINE_VERSION AS abuild
 SHELL ["/bin/ash", "-e", "-o", "pipefail", "-c"]
 
 ENV USERNAME=docker-abuild-aarch64
