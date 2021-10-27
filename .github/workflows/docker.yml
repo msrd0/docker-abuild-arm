@@ -1,17 +1,17 @@
 name: Docker
 on:
   push:
-    branches: [master]
+    branches: [main]
 
 jobs:
   docker:
     name: docker-${{ matrix.alpine_version }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        alpine_version: ["3.13"]
-        latest_alpine_version: ["3.13"]
+        alpine_version: ["3.14"]
+        latest_alpine_version: ["3.14"]
     steps:
       - uses: actions/checkout@v2
       
@@ -27,7 +27,7 @@ jobs:
             --build-arg JOBS=2 \
             --memory $(( 6500 * 1024 * 1024 ))
           
-          docker login -u msrd0 -p "${{ secrets.GHCR_TOKEN }}" ghcr.io
+          docker login -u msrd0 -p "${{ secrets.GITHUB_TOKEN }}" ghcr.io
           for tag in $tags
           do
             if [ "$tag" != "--tag" ]
