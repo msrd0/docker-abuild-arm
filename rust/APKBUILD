@@ -5,13 +5,14 @@
 # Contributor: Ariadne Conill <ariadne@dereferenced.org>
 # Maintainer: Rasmus Thomsen <oss@cogitri.dev>
 pkgname=rust
-pkgver=1.55.0
-_llvmver=12
-_bootver=1.54.0
-pkgrel=3
+pkgver=1.56.0
+_llvmver=11
+_bootver=1.55.0
+_openssl=libressl
+pkgrel=0
 pkgdesc="The Rust Programming Language"
 url="https://www.rust-lang.org/"
-arch="x86_64 armv7 armhf aarch64 x86 ppc64le"
+arch="x86_64"
 license="Apache-2.0 AND MIT"
 
 # gcc is needed at runtime just for linking. Someday rustc might invoke
@@ -29,24 +30,26 @@ _python=python3
 #   cargo and since we need cargo to rebuild cargo... this already happened
 #   several times. For this reason we build cargo with vendored libgit2.
 makedepends_build="
+	bash
 	$_python
+	gcc-aarch64
 	!libgit2-dev
 	file
 	tar
+	xz
+	ninja
 	coreutils
 	llvm$_llvmver-dev
 	llvm$_llvmver-test-utils
-	rust-bootstrap=>$_bootver
-	cargo-bootstrap=>$_bootver
 	curl-dev
 	libssh2-dev
-	openssl1.1-compat-dev
+	$_openssl-dev
 	zlib-dev
 "
 makedepends_host="
 	curl-dev
 	libssh2-dev
-	openssl1.1-compat-dev
+	$_openssl-dev
 	llvm$_llvmver-dev
 	zlib-dev
 "
@@ -61,6 +64,7 @@ options="!archcheck !check"
 
 subpackages="
 	$pkgname-dbg
+	$pkgname-aarch64
 	$pkgname-stdlib
 	$pkgname-analysis
 	$pkgname-gdb::noarch
@@ -72,7 +76,9 @@ subpackages="
 	cargo-zsh-completion:_cargo_zshcomp:noarch
 	cargo-doc:_cargo_doc:noarch
 	"
-source="https://static.rust-lang.org/dist/rustc-$pkgver-src.tar.xz
+source="
+	https://static.rust-lang.org/dist/rust-$_bootver-x86_64-unknown-linux-musl.tar.xz
+	https://static.rust-lang.org/dist/rustc-$pkgver-src.tar.xz
 	musl-fix-linux_musl_base.patch
 	need-rpath.patch
 	need-ssp_nonshared.patch
@@ -98,12 +104,10 @@ builddir="$srcdir/rustc-$pkgver-src"
 #   1.26.0-r0:
 #     - CVE-2019-16760
 
-# We have to add new arches in multiple steps:
-# 1. Compile with the upstream triplets, compiling alpine's triplets in
-# 2. Compile again, now with our triplets selected as build/target, now that
-#    rustc knows about them
-_build="$CBUILD"
-_target="$CTARGET"
+# We are building with rust-lang's musl toolchain for our x86_64 and our aarch64 target
+_build="x86_64-unknown-linux-musl"
+_target="x86_64-alpine-linux-musl"
+_aarch64="aarch64-alpine-linux-musl"
 
 _rlibdir="usr/lib/rustlib/$_target/lib"
 _sharedir="usr/share/rust"
@@ -140,19 +144,25 @@ build() {
 	if [ "$_build" != "$_target" ]; then
 		export PKG_CONFIG_ALLOW_CROSS=1
 	fi
+	
+	# make sure aarch64's gcc is working
+	echo 'int main() {}' | aarch64-alpine-linux-musl-gcc -x c -lssp_nonshared -lgcc_s -L"$CBUILDROOT/usr/lib" - -o /dev/null
+	
+	mkdir "$srcdir/local-rust-root"
+	"$srcdir/rust-$_bootver-x86_64-unknown-linux-musl/install.sh" --destdir="$srcdir/local-rust-root" --prefix=/usr
 
 	./configure \
 		--build="$_build" \
 		--host="$_target" \
-		--target="$_target" \
+		--target="$_target,$_aarch64" \
 		--prefix="/usr" \
 		--release-channel="stable" \
 		--enable-local-rust \
-		--local-rust-root="/usr" \
+		--local-rust-root="$srcdir/local-rust-root/usr" \
 		--llvm-root="/usr/lib/llvm$_llvmver" \
 		--disable-docs \
 		--enable-extended \
-		--tools="analysis,cargo,src" \
+		--tools="cargo,clippy,rustfmt,analysis,src" \
 		--enable-llvm-link-shared \
 		--enable-option-checking \
 		--enable-locked-deps \
@@ -169,6 +179,13 @@ build() {
 		--set="target.$_target.cxx=${CROSS_COMPILE}c++" \
 		--set="target.$_target.ar=${CROSS_COMPILE}ar" \
 		--set="target.$_target.linker=${CROSS_COMPILE}gcc" \
+		--set="target.$_aarch64.llvm-config=/usr/lib/llvm$_llvmver/bin/llvm-config" \
+		--set="target.$_aarch64.musl-root=$CBUILDROOT/usr" \
+		--set="target.$_aarch64.crt-static=false" \
+		--set="target.$_aarch64.cc=aarch64-alpine-linux-musl-gcc" \
+		--set="target.$_aarch64.cxx=aarch64-alpine-linux-musl-c++" \
+		--set="target.$_aarch64.ar=aarch64-alpine-linux-musl-ar" \
+		--set="target.$_aarch64.linker=aarch64-alpine-linux-musl-gcc" \
 		--set="target.$_build.musl-root=/usr" \
 		--set="target.$_build.crt-static=false" \
 		--set="target.$_build.cc=gcc" \
@@ -177,20 +194,26 @@ build() {
 		--set="target.$_build.linker=gcc"
 
 	# Allow warnings instead of just aborting the build
-	sed 's/#deny-warnings = .*/deny-warnings = false/' -i config.toml
+	sed -i config.toml \
+		-e 's/#deny-warnings = .*/deny-warnings = false/' \
+		-e 's/#compression-formats = .*/compression-formats = ["gz"]/'
 	sed 's|deny(warnings,|deny(|' -i src/bootstrap/lib.rs
-
-	$_python ./x.py dist -v --jobs ${JOBS:-2}
+	
+	cat config.toml
+	
+	_jobs=
+	[ -n "$JOBS" ] && _jobs="--jobs $JOBS"
+	$_python ./x.py dist -v $_jobs
 }
 
 check() {
-	# At this moment lib/rustlib/$CTARGET/lib does not contain a complete
+	# At this moment lib/rustlib/$_target/lib does not contain a complete
 	# copy of the .so libs from lib (they will be copied there during
 	# 'x.py install'). Thus we must set LD_LIBRARY_PATH for tests to work.
 	# This is related to change-rpath-to-rustlib.patch.
-	export LD_LIBRARY_PATH="$builddir/build/$CTARGET/stage2/lib"
+	export LD_LIBRARY_PATH="$builddir/build/$_target/stage2/lib"
 
-	"$srcdir"/check-rustc "$builddir"/build/$CTARGET/stage2/bin/rustc
+	"$srcdir"/check-rustc "$builddir"/build/$_target/stage2/bin/rustc
 
 # XXX: There's some problem with these tests, we will figure it out later.
 #	make check \
@@ -208,13 +231,19 @@ package() {
 
 	cd "$pkgdir"
 
+	ls -lh "$builddir"/build/dist/*
+	
 	tar xf "$builddir"/build/dist/rustc-${pkgver}-${_target}.tar.gz \
 		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
 	tar xf "$builddir"/build/dist/rust-std-${pkgver}-${_target}.tar.gz \
 		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
+	tar xf "$builddir"/build/dist/rust-std-${pkgver}-${_aarch64}.tar.gz \
+		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
 	tar xf "$builddir"/build/dist/rustc-dev-${pkgver}-${_target}.tar.gz \
 		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
 	tar xf "$builddir"/build/dist/rust-analysis-${pkgver}-${_target}.tar.gz \
+		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
+	tar xf "$builddir"/build/dist/rust-analysis-${pkgver}-${_aarch64}.tar.gz \
 		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
 #	tar xf "$builddir"/build/dist/rust-analyzer-${pkgver}-${_target}.tar.gz \
 #		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
@@ -226,8 +255,8 @@ package() {
 		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
 #	tar xf "$builddir"/build/dist/miri-${pkgver}-${_target}.tar.gz \
 #		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
-	tar xf "$builddir"/build/dist/rls-${pkgver}-${_target}.tar.gz \
-		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
+#	tar xf "$builddir"/build/dist/rls-${pkgver}-${_target}.tar.gz \
+#		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
 	tar xf "$builddir"/build/dist/rustfmt-${pkgver}-${_target}.tar.gz \
 		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
 
@@ -246,6 +275,14 @@ package() {
 	if [ "$_build" != "$_target" ]; then
 		rm -rf "$pkgdir"/usr/lib/rustlib/$_build
 	fi
+}
+
+aarch64() {
+	pkgdesc="aarch64 target for Rust"
+	depends="gcc-aarch64"
+	
+	find "$pkgdir"/usr/lib/rustlib
+	_mv "$pkgdir"/usr/lib/rustlib/$_aarch64 "$subpkgdir"/usr/lib/rustlib/$_aarch64
 }
 
 stdlib() {
@@ -348,7 +385,8 @@ _mv() {
 }
 
 sha512sums="
-7522f2fa95d5af92472404ecc97d7d9e745e88c933196a83fa373ce1efff6db3c295e0e2afdbfa1ff00644554efa0c3c7f6c11f9119ecf9010cb440b3f27c2da  rustc-1.55.0-src.tar.xz
+6fb700d5d17c084fa520b29f3012ac565eaf891705a27c7738a61bb9899bc952f679987ef3790875b5a7adae836c602b394c7e19103f30bbdf5ec82cf3e86567  rust-1.55.0-x86_64-unknown-linux-musl.tar.xz
+2daa365524b47dcc48e49a0e9c8c45988af44c0845e2695dc5053f18e768e49acf3dbdd77f808dbf260546ef608eb47c593544012dd05675cb7e6b6223900315  rustc-1.56.0-src.tar.xz
 4accbdf546e9f82f38d56169f65fcfb53839e1df89978b9a434a59a1dcb80b4d57c0272c0ece65530ce09ad0f7a7e880b4b97e2b8dd8f2bccace02a5874e6733  musl-fix-linux_musl_base.patch
 2d401a01d2c2db92624d672018342907a41aa4a3842708c0a2ab694af0396d568aca4835d1075f244d77c0a4c45e67f893fd175fd97cd7f758090eba9972eba6  need-rpath.patch
 bc28e1edae88f48eb0368cd0905280c323d521c7e13b6fc2bb1fb6e57274fa418afdc9cb3342f4928842e309d0573b98e82976159541c88b35694dceaf7a82e4  need-ssp_nonshared.patch
@@ -357,7 +395,7 @@ bc28e1edae88f48eb0368cd0905280c323d521c7e13b6fc2bb1fb6e57274fa418afdc9cb3342f492
 7d59258d4462eba0207739a5c0c8baf1f19d9a396e5547bb4d59d700eb94d50ba6add2e523f3e94e29e993821018594625ea4ac86304fb58f7f8c82622a26ab0  install-template-shebang.patch
 c31fdfe8a9b3411576c75da46645cf0465b9053000a2ab49cf9b2f2733f679d6d33acbf236d67a20e14935d094a685453b7f1840180249f39d610fd0902c3125  check-rustc
 d5d3ccc5c3a73bf1816106ba00805346ea28f2e6337d960e9e9f776ba59d22abd8864382f163d32dd9a278df38c080949dafc70169728f44080ddc04f1e7f125  link-musl-dynamically.patch
-b17e9b1f1d2f9ab8aea7dc5f4a1adfde844ac1570d935804f293376a9b568e3760906192d1ea82f093736a28d157ad3f501932f9daae3be3954de2c3458a626d  0006-Prefer-libgcc_eh-over-libunwind-for-musl.patch
+d368c955b058e7b57d91f53fbebf1030f2d2826b0ffb0a85db5aa54baee7bd44371491cc373101846232f91fd383dd15aa1cd245fb8f439d35813ac4017be419  0006-Prefer-libgcc_eh-over-libunwind-for-musl.patch
 7af23c34096f7a03c5a1b40aa07e00dd6193743c872881018a9baa900f240c6e44918e481ab5ed7787a70ef361e4aeec2a7719bcd695f52988262e23271b44e5  0007-do-not-install-libunwind-source.patch
 4cb2592d30cd1a776375522631aa284dd077eaa39b109921d6ee5906fd0130b048e07d3adef1d7221f5c001d1df5187feb3e3687e0aa5d19279099065a7d4cb7  mips-softfloat.patch
 "

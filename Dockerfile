@@ -1,6 +1,6 @@
-ARG ALPINE_VERSION=3.13
+ARG ALPINE_VERSION=3.14
 FROM alpine:$ALPINE_VERSION AS abuild
-ARG ALPINE_VERSION=3.13
+ARG ALPINE_VERSION=3.14
 ENV ALPINE_VERSION=$ALPINE_VERSION
 SHELL ["/bin/ash", "-e", "-o", "pipefail", "-c"]
 
@@ -69,6 +69,14 @@ RUN EXTRADEPENDS_TARGET="musl musl-dev" BOOTSTRAP=nobase APKBUILD=aports/main/gc
 
 # cross-build base
 RUN BOOTSTRAP=nobase APKBUILD=aports/main/build-base/APKBUILD abuild -r
+
+# enable local repository so that cross-built gcc can be installed
+RUN echo "/home/docker-abuild-aarch64/packages-aarch64/main" | sudo tee -a /etc/apk/repositories
+
+# build rust
+COPY rust rust
+RUN sudo chown -R docker-abuild-aarch64 rust \
+ && EXTRADEPENDS_TARGET="libgcc musl musl-dev" APKBUILD=rust/APKBUILD abuild -r
 
 # cleanup aarch64 packages - those come from the alpine repositories
 RUN rm -r "$HOME/packages-aarch64/main/aarch64"
