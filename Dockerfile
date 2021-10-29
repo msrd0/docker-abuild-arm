@@ -70,13 +70,14 @@ RUN EXTRADEPENDS_TARGET="musl musl-dev" BOOTSTRAP=nobase APKBUILD=aports/main/gc
 # cross-build base
 RUN BOOTSTRAP=nobase APKBUILD=aports/main/build-base/APKBUILD abuild -r
 
-# enable local repository so that cross-built gcc can be installed
+# enable main repository for the community section
 RUN echo "/home/docker-abuild-aarch64/packages-aarch64/main" | sudo tee -a /etc/apk/repositories
 
-# build rust
-COPY rust rust
-RUN sudo chown -R docker-abuild-aarch64 rust \
- && EXTRADEPENDS_TARGET="libgcc musl musl-dev" APKBUILD=rust/APKBUILD abuild -r
+# build rust - slightly modified, but we'll put it in the community repo anyways
+RUN mkdir community
+COPY rust community/rust
+RUN sudo chown -R docker-abuild-aarch64 community/rust \
+ && EXTRADEPENDS_TARGET="libgcc musl musl-dev" APKBUILD=community/rust/APKBUILD abuild -r
 
 # cleanup aarch64 packages - those come from the alpine repositories
 RUN rm -r "$HOME/packages-aarch64/main/aarch64"
@@ -87,7 +88,8 @@ FROM abuild
 USER root
 COPY --from=bootstrap /home/docker-abuild-aarch64/sysroot-aarch64 /home/docker-abuild-aarch64/sysroot-aarch64
 COPY --from=bootstrap /home/docker-abuild-aarch64/packages-aarch64 /home/docker-abuild-aarch64/packages-aarch64
-RUN echo "/home/docker-abuild-aarch64/packages-aarch64/main" >>/etc/apk/repositories
+RUN echo "/home/docker-abuild-aarch64/packages-aarch64/main" >>/etc/apk/repositories \
+ && echo "/home/docker-abuild-aarch64/packages-aarch64/community" >>/etc/apk/repositories
 
 ENV CHOST=aarch64
 ENV EXTRADEPENDS_TARGET="build-base"
