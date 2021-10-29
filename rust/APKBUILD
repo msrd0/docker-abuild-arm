@@ -66,8 +66,6 @@ subpackages="
 	$pkgname-dbg
 	$pkgname-stdlib
 	$pkgname-stdlib-aarch64:_stdlib_aarch64
-	$pkgname-analysis
-	$pkgname-analysis-aarch64:_analysis_aarch64
 	$pkgname-gdb::noarch
 	$pkgname-lldb::noarch
 	$pkgname-doc
@@ -163,7 +161,7 @@ build() {
 		--llvm-root="/usr/lib/llvm$_llvmver" \
 		--disable-docs \
 		--enable-extended \
-		--tools="cargo,clippy,rustfmt,analysis,src" \
+		--tools="cargo,clippy,rustfmt,src" \
 		--enable-llvm-link-shared \
 		--enable-option-checking \
 		--enable-locked-deps \
@@ -236,8 +234,8 @@ package() {
 		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
 	tar xf "$builddir"/build/dist/rustc-dev-${pkgver}-${_target}.tar.gz \
 		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
-	tar xf "$builddir"/build/dist/rust-analysis-${pkgver}-${_target}.tar.gz \
-		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
+#	tar xf "$builddir"/build/dist/rust-analysis-${pkgver}-${_target}.tar.gz \
+#		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
 #	tar xf "$builddir"/build/dist/rust-analyzer-${pkgver}-${_target}.tar.gz \
 #		-C "$pkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
 	tar xf "$builddir"/build/dist/rust-src-${pkgver}.tar.gz \
@@ -283,23 +281,6 @@ _stdlib_aarch64() {
 	
 	mkdir -p "$subpkgdir/usr"
 	tar xf "$builddir"/build/dist/rust-std-${pkgver}-${_aarch64}.tar.gz \
-		-C "$subpkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
-}
-
-analysis() {
-	pkgdesc="Compiler analysis data for the Rust standard library"
-	depends="$pkgname-stdlib=$pkgver-r$pkgrel"
-
-	_mv "$pkgdir"/$_rlibdir/../analysis "$subpkgdir"/${_rlibdir%/*}/
-}
-
-_analysis_aarch64() {
-	pkgdesc="Compiler analysis data for the Rust standard library (aarch64 target)"
-	depends="$pkgname-stdlib-aarch64=$pkgver-r$pkgrel"
-	install_if="$pkgname-stdlib-aarch64=$pkgver-r$pkgrel $pkgname-analysis=$pkgver-r$pkgrel"
-	
-	mkdir -p "$subpkgdir/usr"
-	tar xf "$builddir"/build/dist/rust-analysis-${pkgver}-${_aarch64}.tar.gz \
 		-C "$subpkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
 }
 
