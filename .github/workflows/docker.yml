@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: ["aarch64", "armv7"]
+        arch: ["aarch64", "armhf"]
         alpine_version: ["3.14"]
         latest_alpine_version: ["3.14"]
     steps:
