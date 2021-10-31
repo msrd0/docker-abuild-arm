@@ -15,6 +15,19 @@ url="https://www.rust-lang.org/"
 arch="x86_64"
 license="Apache-2.0 AND MIT"
 
+_ctarget=x86_64
+case "$CTARGET" in
+	aarch64-*)
+		_ctarget=aarch64
+		;;
+	armv7-*)
+		_ctarget=armv7
+		;;
+	armhf-*)
+		_ctarget=armhf
+		;;
+esac
+
 # gcc is needed at runtime just for linking. Someday rustc might invoke
 # the linker directly, and then we'll only need binutils.
 # See: https://github.com/rust-lang/rust/issues/11937
@@ -32,7 +45,7 @@ _python=python3
 makedepends_build="
 	bash
 	$_python
-	gcc-aarch64
+	gcc-$_ctarget
 	!libgit2-dev
 	file
 	tar
@@ -65,7 +78,7 @@ options="!archcheck !check"
 subpackages="
 	$pkgname-dbg
 	$pkgname-stdlib
-	$pkgname-stdlib-aarch64:_stdlib_aarch64
+	$pkgname-stdlib-$_ctarget::_stdlib_arm
 	$pkgname-gdb::noarch
 	$pkgname-lldb::noarch
 	$pkgname-doc
@@ -103,10 +116,10 @@ builddir="$srcdir/rustc-$pkgver-src"
 #   1.26.0-r0:
 #     - CVE-2019-16760
 
-# We are building with rust-lang's musl toolchain for our x86_64 and our aarch64 target
+# We are building with rust-lang's musl toolchain for our x86_64 and our arm target
 _build="x86_64-unknown-linux-musl"
 _target="x86_64-alpine-linux-musl"
-_aarch64="aarch64-alpine-linux-musl"
+_arm="$CTARGET"
 
 _rlibdir="usr/lib/rustlib/$_target/lib"
 _sharedir="usr/share/rust"
@@ -144,16 +157,13 @@ build() {
 		export PKG_CONFIG_ALLOW_CROSS=1
 	fi
 	
-	# make sure aarch64's gcc is working
-	echo 'int main() {}' | aarch64-alpine-linux-musl-gcc -x c -lssp_nonshared -lgcc_s -L"$CBUILDROOT/usr/lib" - -o /dev/null
-	
 	mkdir "$srcdir/local-rust-root"
 	"$srcdir/rust-$_bootver-x86_64-unknown-linux-musl/install.sh" --destdir="$srcdir/local-rust-root" --prefix=/usr
 
 	./configure \
 		--build="$_build" \
 		--host="$_target" \
-		--target="$_target,$_aarch64" \
+		--target="$_target,$_arm" \
 		--prefix="/usr" \
 		--release-channel="stable" \
 		--enable-local-rust \
@@ -178,13 +188,13 @@ build() {
 		--set="target.$_target.cxx=${CROSS_COMPILE}c++" \
 		--set="target.$_target.ar=${CROSS_COMPILE}ar" \
 		--set="target.$_target.linker=${CROSS_COMPILE}gcc" \
-		--set="target.$_aarch64.llvm-config=/usr/lib/llvm$_llvmver/bin/llvm-config" \
-		--set="target.$_aarch64.musl-root=$CBUILDROOT/usr" \
-		--set="target.$_aarch64.crt-static=false" \
-		--set="target.$_aarch64.cc=aarch64-alpine-linux-musl-gcc" \
-		--set="target.$_aarch64.cxx=aarch64-alpine-linux-musl-c++" \
-		--set="target.$_aarch64.ar=aarch64-alpine-linux-musl-ar" \
-		--set="target.$_aarch64.linker=aarch64-alpine-linux-musl-gcc" \
+		--set="target.$_arm.llvm-config=/usr/lib/llvm$_llvmver/bin/llvm-config" \
+		--set="target.$_arm.musl-root=$CBUILDROOT/usr" \
+		--set="target.$_arm.crt-static=false" \
+		--set="target.$_arm.cc=$_arm-gcc" \
+		--set="target.$_arm.cxx=$_arm-c++" \
+		--set="target.$_arm.ar=$_arm-ar" \
+		--set="target.$_arm.linker=$_arm-gcc" \
 		--set="target.$_build.musl-root=/usr" \
 		--set="target.$_build.crt-static=false" \
 		--set="target.$_build.cc=gcc" \
@@ -275,12 +285,12 @@ stdlib() {
 	_mv "$pkgdir"/$_rlibdir/*.rlib "$subpkgdir"/$_rlibdir/
 }
 
-_stdlib_aarch64() {
-	pkgdesc="Standard library for Rust (aarch64 target)"
-	depends="gcc-aarch64"
+_stdlib_arm() {
+	pkgdesc="Standard library for Rust ($_ctarget target)"
+	depends="gcc-$_ctarget"
 	
 	mkdir -p "$subpkgdir/usr"
-	tar xf "$builddir"/build/dist/rust-std-${pkgver}-${_aarch64}.tar.gz \
+	tar xf "$builddir"/build/dist/rust-std-${pkgver}-${_arm}.tar.gz \
 		-C "$subpkgdir/usr" --strip-components=2 --exclude=manifest.in --no-same-owner
 }
 
