@@ -13,5 +13,12 @@ fi
 echo "export JOBS=$JOBS" >>~/.abuild/abuild.conf
 echo 'export MAKEFLAGS=-j$JOBS' >>~/.abuild/abuild.conf
 
+echo
+echo
+echo 'To install packages for aarch64, use the following command:'
+echo
+echo '    abuild-apk add --root $CBUILDROOT --arch $CTARGET <package>'
+echo
+
 # run whatever the user wants
 exec "$@"

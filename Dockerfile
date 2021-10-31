@@ -82,6 +82,9 @@ RUN sudo chown -R docker-abuild-aarch64 community/rust \
 # cleanup aarch64 packages - those come from the alpine repositories
 RUN rm -r "$HOME/packages-aarch64/main/aarch64"
 
+# remove cache from the sysroot
+RUN rm -r "$CBUILDROOT/var/cache"/*
+
 # last stage - pull the packages and sysroot
 FROM abuild
 
