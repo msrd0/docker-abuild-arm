@@ -81,7 +81,7 @@ options="!archcheck !check"
 subpackages="
 	$pkgname-dbg
 	$pkgname-stdlib
-	$pkgname-stdlib-$_ctarget::_stdlib_arm
+	$pkgname-stdlib-$_ctarget:_stdlib_arm
 	$pkgname-gdb::noarch
 	$pkgname-lldb::noarch
 	$pkgname-doc
