@@ -4,8 +4,8 @@ ARG ALPINE_VERSION=3.14
 ENV ALPINE_VERSION=$ALPINE_VERSION
 SHELL ["/bin/ash", "-e", "-o", "pipefail", "-c"]
 
-ENV USERNAME=docker-abuild-aarch64
-ENV USERHOME=/home/docker-abuild-aarch64
+ENV USERNAME=docker-abuild-arm
+ENV USERHOME=/home/docker-abuild-arm
 RUN env && test -n "$ALPINE_VERSION" \
  && sed -i 's,http:,https:,g' /etc/apk/repositories \
  && apk add --no-cache alpine-sdk sudo util-linux \
@@ -17,14 +17,15 @@ RUN env && test -n "$ALPINE_VERSION" \
  && chgrp abuild /var/cache/distfiles \
  && chmod 775 /var/cache/distfiles \
  && mkdir -p "$USERHOME/.abuild" \
- && echo "$USERHOME/.abuild/docker-abuild-aarch64.rsa" | abuild-keygen -i -b 4096 \
+ && echo "$USERHOME/.abuild/$USERNAME.rsa" | abuild-keygen -i -b 4096 \
  && chown -R "$USERNAME:$USERNAME" "$USERHOME/.abuild"
-USER docker-abuild-aarch64
-WORKDIR /home/docker-abuild-aarch64
+USER docker-abuild-arm
+WORKDIR /home/docker-abuild-arm
 
 # sysroot preparations
-ENV CTARGET=aarch64
-ENV CBUILDROOT=/home/docker-abuild-aarch64/sysroot-aarch64
+ARG CTARGET=aarch64
+ENV CTARGET=$CTARGET
+ENV CBUILDROOT=/home/docker-abuild-arm/sysroot-arm
 COPY alpine-devel@lists.alpinelinux.org-524d27bb.rsa.pub /etc/apk/keys/
 COPY alpine-devel@lists.alpinelinux.org-58199dcc.rsa.pub /etc/apk/keys/
 
@@ -35,8 +36,8 @@ ARG JOBS=
 
 RUN abuild-apk update \
  && [ -n "$JOBS" ] || JOBS="$(lscpu -p | grep -E '^[^#]' | wc -l)" \
- && echo 'REPODEST="$HOME/packages-aarch64"' >.abuild/abuild.conf \
- && echo "PACKAGER_PRIVKEY=\"$HOME/.abuild/docker-abuild-aarch64.rsa\"" >>.abuild/abuild.conf \
+ && echo 'REPODEST="$HOME/packages-arm"' >.abuild/abuild.conf \
+ && echo "PACKAGER_PRIVKEY=\"$HOME/.abuild/$USERNAME.rsa\"" >>.abuild/abuild.conf \
  && echo "export JOBS=$JOBS" >>.abuild/abuild.conf \
  && echo 'export MAKEFLAGS=-j$JOBS' >>.abuild/abuild.conf \
  && cat .abuild/abuild.conf
@@ -55,7 +56,7 @@ RUN git clone --depth=1 --branch=$ALPINE_VERSION-stable https://gitlab.alpinelin
 RUN BOOTSTRAP=nobase APKBUILD=aports/main/binutils/APKBUILD abuild -r
 
 # musl headers
-RUN CHOST=aarch64 BOOTSTRAP=nocc APKBUILD=aports/main/musl/APKBUILD abuild -r
+RUN CHOST="$CTARGET" BOOTSTRAP=nocc APKBUILD=aports/main/musl/APKBUILD abuild -r
 
 # minimal gcc
 ENV LANG_ADA=false
@@ -71,16 +72,16 @@ RUN EXTRADEPENDS_TARGET="musl musl-dev" BOOTSTRAP=nobase APKBUILD=aports/main/gc
 RUN BOOTSTRAP=nobase APKBUILD=aports/main/build-base/APKBUILD abuild -r
 
 # enable main repository for the community section
-RUN echo "/home/docker-abuild-aarch64/packages-aarch64/main" | sudo tee -a /etc/apk/repositories
+RUN echo "$USERHOME/packages-arm/main" | sudo tee -a /etc/apk/repositories
 
 # build rust - slightly modified, but we'll put it in the community repo anyways
 RUN mkdir community
 COPY rust community/rust
-RUN sudo chown -R docker-abuild-aarch64 community/rust \
+RUN sudo chown -R docker-abuild-arm community/rust \
  && EXTRADEPENDS_TARGET="libgcc musl musl-dev" APKBUILD=community/rust/APKBUILD abuild -r
 
-# cleanup aarch64 packages - those come from the alpine repositories
-RUN rm -r "$HOME/packages-aarch64/main/aarch64"
+# cleanup arm packages - those come from the alpine repositories
+RUN rm -r "$HOME/packages-arm/main/$CTARGET"
 
 # remove cache from the sysroot
 RUN rm -r "$CBUILDROOT/var/cache"/*
@@ -89,15 +90,15 @@ RUN rm -r "$CBUILDROOT/var/cache"/*
 FROM abuild
 
 USER root
-COPY --from=bootstrap /home/docker-abuild-aarch64/sysroot-aarch64 /home/docker-abuild-aarch64/sysroot-aarch64
-COPY --from=bootstrap /home/docker-abuild-aarch64/packages-aarch64 /home/docker-abuild-aarch64/packages-aarch64
-RUN echo "/home/docker-abuild-aarch64/packages-aarch64/main" >>/etc/apk/repositories \
- && echo "/home/docker-abuild-aarch64/packages-aarch64/community" >>/etc/apk/repositories
+COPY --from=bootstrap /home/docker-abuild-arm/sysroot-arm /home/docker-abuild-arm/sysroot-arm
+COPY --from=bootstrap /home/docker-abuild-arm/packages-arm /home/docker-abuild-arm/packages-arm
+RUN echo "$USERHOME/packages-arm/main" >>/etc/apk/repositories \
+ && echo "$USERHOME/packages-arm/community" >>/etc/apk/repositories
 
-ENV CHOST=aarch64
+ENV CHOST=$CTARGET
 ENV EXTRADEPENDS_TARGET="build-base"
 
-USER docker-abuild-aarch64
+USER docker-abuild-arm
 COPY entrypoint.sh /
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/bin/ash"]

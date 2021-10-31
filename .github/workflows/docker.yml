@@ -5,11 +5,12 @@ on:
 
 jobs:
   docker:
-    name: docker-${{ matrix.alpine_version }}
+    name: Docker for Alpine ${{matrix.alpine_version}} ${{matrix.arch}}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        arch: ["aarch64", "armv7"]
         alpine_version: ["3.14"]
         latest_alpine_version: ["3.14"]
     steps:
@@ -17,21 +18,20 @@ jobs:
       
       - name: Build and Push Docker Image
         run: |
-          image="ghcr.io/msrd0/abuild-aarch64"
-          tags="--tag $image:${{ matrix.alpine_version }}"
-          [ "${{ matrix.alpine_version }}" == "${{ matrix.latest_alpine_version }}" ] && tags="$tag --tag $image"
+          image="ghcr.io/msrd0/abuild-${{matrix.arch}}"
+          tags="--tag $image:${{matrix.alpine_version}}"
+          [ "${{matrix.alpine_version}}" == "${{matrix.latest_alpine_version}}" ] && tags="$tag --tag $image"
           docker build . \
             --pull \
             $tags \
-            --build-arg ALPINE_VERSION=${{ matrix.alpine_version }} \
+            --build-arg ALPINE_VERSION=${{matrix.alpine_version}} \
+            --build-arg CTARGET=${{matrix.arch}} \
             --build-arg JOBS=2 \
             --memory $(( 6500 * 1024 * 1024 ))
           
-          docker login -u msrd0 -p "${{ secrets.GITHUB_TOKEN }}" ghcr.io
-          for tag in $tags
-          do
-            if [ "$tag" != "--tag" ]
-            then
-              docker push ghcr.io/msrd0/abuild-aarch64
+          docker login -u msrd0 -p "${{secrets.GITHUB_TOKEN}}" ghcr.io
+          for tag in $tags; do
+            if [ "$tag" != "--tag" ]; then
+              docker push "$tag"
             fi
           done
