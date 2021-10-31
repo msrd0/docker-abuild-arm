@@ -23,6 +23,9 @@ case "$CTARGET" in
 	armv7-*)
 		_ctarget=armv7
 		;;
+	armv6-*)
+		_ctarget=armhf
+		;;
 	armhf-*)
 		_ctarget=armhf
 		;;
