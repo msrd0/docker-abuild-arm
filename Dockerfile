@@ -84,7 +84,7 @@ RUN sudo chown -R docker-abuild-arm community/rust \
 RUN rm -r "$HOME/packages-arm/main/$CTARGET"
 
 # remove cache from the sysroot
-RUN rm -r "$CBUILDROOT/var/cache"/*
+RUN sudo rm -r "$CBUILDROOT/var/cache"/*
 
 # last stage - pull the packages and sysroot
 FROM abuild
