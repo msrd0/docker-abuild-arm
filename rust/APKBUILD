@@ -3,7 +3,7 @@
 # Contributor: Shiz <hi@shiz.me>
 # Contributor: Jeizsm <jeizsm@gmail.com>
 # Contributor: Ariadne Conill <ariadne@dereferenced.org>
-# Maintainer: Dominic Meiser <git at msrd0 dot de>
+# Maintainer: Dominic Meiser <git@msrd0.de>
 pkgname=rust
 pkgver=1.56.1
 _llvmver=11
