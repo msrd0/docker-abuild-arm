@@ -1,3 +1,4 @@
+# -*- mode: Shell-script; eval: (setq indent-tabs-mode 't); eval: (setq tab-width 4) -*-
 # Contributor: Rasmus Thomsen <oss@cogitri.dev>
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Contributor: Shiz <hi@shiz.me>
@@ -5,9 +6,9 @@
 # Contributor: Ariadne Conill <ariadne@dereferenced.org>
 # Maintainer: Dominic Meiser <git@msrd0.de>
 pkgname=rust
-pkgver=1.58.1
+pkgver=1.59.0
 _llvmver=12
-_bootver=1.57.0
+_bootver=1.58.1
 _openssl=libressl
 pkgrel=0
 pkgdesc="The Rust Programming Language"
@@ -383,8 +384,8 @@ _mv() {
 	mv "$@"
 }
 
-sha512sums="204ed493528757b8e3e8df13d062c9ae74c75c3e3adc1a2efc0dfc33d2525629168a558dd32653f44a4365191bf203a4415a77152276288a8e122e6bd587394a  rust-1.57.0-x86_64-unknown-linux-musl.tar.xz
-eff3279d2e519343cea542a9ae2daab592e44f35af344e33ff43ed55fc7c824511790d1991dd36a603d12465de8c3688e7194c2b9557f288c587ffa04738c2ce  rustc-1.58.1-src.tar.xz
+sha512sums="d064464333a64f91b8a30f267ecfe2b4dc5be6d639bc9f064efa86a54478c8de7156166236b7ff8d96bf8fc8cbbeebf7ac17d8b5dabf24d72e189dbbd8ae0819  rust-1.58.1-x86_64-unknown-linux-musl.tar.xz
+acace866871d13a55d365f65d7e15c192c3cd33096862571df6317e066b7474d668b95ae281e0244967778c05f1e33966c3c55616218bd25d3770a2b2d4f0365  rustc-1.59.0-src.tar.xz
 4accbdf546e9f82f38d56169f65fcfb53839e1df89978b9a434a59a1dcb80b4d57c0272c0ece65530ce09ad0f7a7e880b4b97e2b8dd8f2bccace02a5874e6733  musl-fix-linux_musl_base.patch
 2d401a01d2c2db92624d672018342907a41aa4a3842708c0a2ab694af0396d568aca4835d1075f244d77c0a4c45e67f893fd175fd97cd7f758090eba9972eba6  need-rpath.patch
 bc28e1edae88f48eb0368cd0905280c323d521c7e13b6fc2bb1fb6e57274fa418afdc9cb3342f4928842e309d0573b98e82976159541c88b35694dceaf7a82e4  need-ssp_nonshared.patch
