@@ -17,8 +17,8 @@ and distribution-specific quirks instead of polluting the main musl target of
 +pub fn target() -> Target {
 +    let mut base = super::aarch64_unknown_linux_musl::target();
 +
-+    base.llvm_target = "aarch64-alpine-linux-musl".to_string();
-+    base.options.vendor = "alpine".to_string();
++    base.llvm_target = "aarch64-alpine-linux-musl".into();
++    base.options.vendor = "alpine".into();
 +    base.options.crt_static_default = false;
 +    base.options.static_position_independent_executables = true;
 +    base.options.need_rpath = true;
@@ -33,8 +33,8 @@ and distribution-specific quirks instead of polluting the main musl target of
 +pub fn target() -> Target {
 +    let mut base = super::arm_unknown_linux_musleabihf::target();
 +
-+    base.llvm_target = "armv6-alpine-linux-musleabihf".to_string();
-+    base.options.vendor = "alpine".to_string();
++    base.llvm_target = "armv6-alpine-linux-musleabihf".into();
++    base.options.vendor = "alpine".into();
 +    base.options.crt_static_default = false;
 +    base.options.static_position_independent_executables = true;
 +    base.options.need_rpath = true;
@@ -49,8 +49,8 @@ and distribution-specific quirks instead of polluting the main musl target of
 +pub fn target() -> Target {
 +    let mut base = super::armv7_unknown_linux_musleabihf::target();
 +
-+    base.llvm_target = "armv7-alpine-linux-musleabihf".to_string();
-+    base.options.vendor = "alpine".to_string();
++    base.llvm_target = "armv7-alpine-linux-musleabihf".into();
++    base.options.vendor = "alpine".into();
 +    base.options.crt_static_default = false;
 +    base.options.static_position_independent_executables = true;
 +    base.options.need_rpath = true;
@@ -65,73 +65,9 @@ and distribution-specific quirks instead of polluting the main musl target of
 +pub fn target() -> Target {
 +    let mut base = super::i686_unknown_linux_musl::target();
 +
-+    base.options.cpu = "pentium4".to_string();
-+    base.llvm_target = "i586-alpine-linux-musl".to_string();
-+    base.options.vendor = "alpine".to_string();
-+    base.options.crt_static_default = false;
-+    base.options.static_position_independent_executables = true;
-+    base.options.need_rpath = true;
-+
-+    base
-+}
---- /dev/null
-+++ rustc-1.48.0-src/compiler/rustc_target/src/spec/mips64_alpine_linux_musl.rs
-@@ -0,0 +1,13 @@
-+use crate::spec::Target;
-+
-+pub fn target() -> Target {
-+    let mut base = super::mips64_unknown_linux_muslabi64::target();
-+
-+    base.llvm_target = "mips64-alpine-linux-musl".to_string();
-+    base.options.vendor = "alpine".to_string();
-+    base.options.crt_static_default = false;
-+    base.options.static_position_independent_executables = true;
-+    base.options.need_rpath = true;
-+
-+    base
-+}
---- /dev/null
-+++ rustc-1.48.0-src/compiler/rustc_target/src/spec/mips64el_alpine_linux_musl.rs
-@@ -0,0 +1,13 @@
-+use crate::spec::Target;
-+
-+pub fn target() -> Target {
-+    let mut base = super::mips64el_unknown_linux_muslabi64::target();
-+
-+    base.llvm_target = "mips64el-alpine-linux-musl".to_string();
-+    base.options.vendor = "alpine".to_string();
-+    base.options.crt_static_default = false;
-+    base.options.static_position_independent_executables = true;
-+    base.options.need_rpath = true;
-+
-+    base
-+}
---- /dev/null
-+++ rustc-1.48.0-src/compiler/rustc_target/src/spec/mips_alpine_linux_musl.rs
-@@ -0,0 +1,13 @@
-+use crate::spec::Target;
-+
-+pub fn target() -> Target {
-+    let mut base = super::mips_unknown_linux_musl::target();
-+
-+    base.llvm_target = "mips-alpine-linux-musl".to_string();
-+    base.options.vendor = "alpine".to_string();
-+    base.options.crt_static_default = false;
-+    base.options.static_position_independent_executables = true;
-+    base.options.need_rpath = true;
-+
-+    base
-+}
---- /dev/null
-+++ rustc-1.48.0-src/compiler/rustc_target/src/spec/mipsel_alpine_linux_musl.rs
-@@ -0,0 +1,13 @@
-+use crate::spec::Target;
-+
-+pub fn target() -> Target {
-+    let mut base = super::mipsel_unknown_linux_musl::target();
-+
-+    base.llvm_target = "mipsel-alpine-linux-musl".to_string();
-+    base.options.vendor = "alpine".to_string();
++    base.options.cpu = "pentium4".into();
++    base.llvm_target = "i586-alpine-linux-musl".into();
++    base.options.vendor = "alpine".into();
 +    base.options.crt_static_default = false;
 +    base.options.static_position_independent_executables = true;
 +    base.options.need_rpath = true;
@@ -140,7 +76,7 @@ and distribution-specific quirks instead of polluting the main musl target of
 +}
 --- rustc-1.48.0-src.orig/compiler/rustc_target/src/spec/mod.rs
 +++ rustc-1.48.0-src/compiler/rustc_target/src/spec/mod.rs
-@@ -490,6 +490,20 @@
+@@ -490,6 +490,16 @@
  }
  
  supported_targets! {
@@ -153,10 +89,6 @@ and distribution-specific quirks instead of polluting the main musl target of
 +    ("powerpc64-alpine-linux-musl", powerpc64_alpine_linux_musl),
 +    ("powerpc64le-alpine-linux-musl", powerpc64le_alpine_linux_musl),
 +    ("s390x-alpine-linux-musl", s390x_alpine_linux_musl),
-+    ("mips-alpine-linux-musl", mips_alpine_linux_musl),
-+    ("mipsel-alpine-linux-musl", mipsel_alpine_linux_musl),
-+    ("mips64-alpine-linux-musl", mips64_alpine_linux_musl),
-+    ("mips64el-alpine-linux-musl", mips64el_alpine_linux_musl),
 +    ("riscv64-alpine-linux-musl", riscv64_alpine_linux_musl),
      ("x86_64-unknown-linux-gnu", x86_64_unknown_linux_gnu),
      ("x86_64-unknown-linux-gnux32", x86_64_unknown_linux_gnux32),
@@ -169,8 +101,8 @@ and distribution-specific quirks instead of polluting the main musl target of
 +pub fn target() -> Target {
 +    let mut base = super::powerpc64_unknown_linux_musl::target();
 +
-+    base.llvm_target = "powerpc64-alpine-linux-musl".to_string();
-+    base.options.vendor = "alpine".to_string();
++    base.llvm_target = "powerpc64-alpine-linux-musl".into();
++    base.options.vendor = "alpine".into();
 +    base.options.crt_static_default = false;
 +    base.options.static_position_independent_executables = true;
 +    base.options.need_rpath = true;
@@ -185,8 +117,8 @@ and distribution-specific quirks instead of polluting the main musl target of
 +pub fn target() -> Target {
 +    let mut base = super::powerpc64le_unknown_linux_musl::target();
 +
-+    base.llvm_target = "powerpc64le-alpine-linux-musl".to_string();
-+    base.options.vendor = "alpine".to_string();
++    base.llvm_target = "powerpc64le-alpine-linux-musl".into();
++    base.options.vendor = "alpine".into();
 +    base.options.crt_static_default = false;
 +    base.options.static_position_independent_executables = true;
 +    base.options.need_rpath = true;
@@ -201,8 +133,8 @@ and distribution-specific quirks instead of polluting the main musl target of
 +pub fn target() -> Target {
 +    let mut base = super::powerpc_unknown_linux_musl::target();
 +
-+    base.llvm_target = "powerpc-alpine-linux-musl".to_string();
-+    base.options.vendor = "alpine".to_string();
++    base.llvm_target = "powerpc-alpine-linux-musl".into();
++    base.options.vendor = "alpine".into();
 +    base.options.crt_static_default = false;
 +    base.options.static_position_independent_executables = true;
 +    base.options.need_rpath = true;
@@ -217,8 +149,8 @@ and distribution-specific quirks instead of polluting the main musl target of
 +pub fn target() -> Target {
 +    let mut base = super::s390x_unknown_linux_musl::target();
 +
-+    base.llvm_target = "s390x-alpine-linux-musl".to_string();
-+    base.options.vendor = "alpine".to_string();
++    base.llvm_target = "s390x-alpine-linux-musl".into();
++    base.options.vendor = "alpine".into();
 +    base.options.crt_static_default = false;
 +    base.options.static_position_independent_executables = true;
 +    base.options.need_rpath = true;
@@ -233,8 +165,8 @@ and distribution-specific quirks instead of polluting the main musl target of
 +pub fn target() -> Target {
 +    let mut base = super::x86_64_unknown_linux_musl::target();
 +
-+    base.llvm_target = "x86_64-alpine-linux-musl".to_string();
-+    base.options.vendor = "alpine".to_string();
++    base.llvm_target = "x86_64-alpine-linux-musl".into();
++    base.options.vendor = "alpine".into();
 +    base.options.crt_static_default = false;
 +    base.options.static_position_independent_executables = true;
 +    base.options.need_rpath = true;
@@ -249,8 +181,8 @@ and distribution-specific quirks instead of polluting the main musl target of
 +pub fn target() -> Target {
 +    let mut base = super::riscv64gc_unknown_linux_musl::target();
 +
-+    base.llvm_target = "riscv64-alpine-linux-musl".to_string();
-+    base.options.vendor = "alpine".to_string();
++    base.llvm_target = "riscv64-alpine-linux-musl".into();
++    base.options.vendor = "alpine".into();
 +    base.options.crt_static_default = false;
 +    base.options.static_position_independent_executables = true;
 +    base.options.need_rpath = true;
