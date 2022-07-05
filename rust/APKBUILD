@@ -6,9 +6,9 @@
 # Contributor: Ariadne Conill <ariadne@dereferenced.org>
 # Maintainer: Dominic Meiser <git@msrd0.de>
 pkgname=rust
-pkgver=1.61.0
-_llvmver=12
-_bootver=1.60.0
+pkgver=1.62.0
+_llvmver=13
+_bootver=1.61.0
 _openssl=libressl
 pkgrel=0
 pkgdesc="The Rust Programming Language"
