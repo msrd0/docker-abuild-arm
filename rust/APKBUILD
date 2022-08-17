@@ -53,7 +53,7 @@ makedepends_build="
 	libssh2-dev
 	llvm$_llvmver-dev
 	llvm$_llvmver-test-utils
-	openssl3-dev
+	openssl-dev
 	python3
 	tar
 	xz-dev
@@ -63,7 +63,7 @@ makedepends_host="
 	curl-dev
 	libssh2-dev
 	llvm$_llvmver-dev
-	openssl3-dev
+	openssl-dev
 	zlib-dev
 "
 
