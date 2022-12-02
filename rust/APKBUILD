@@ -6,9 +6,9 @@
 # Contributor: Ariadne Conill <ariadne@dereferenced.org>
 # Maintainer: Dominic Meiser <git@msrd0.de>
 pkgname=rust
-pkgver=1.63.0
+pkgver=1.65.0
 _llvmver=13
-_bootver=1.62.1
+_bootver=1.64.0
 pkgrel=0
 pkgdesc="The Rust Programming Language"
 url="https://www.rust-lang.org/"
@@ -133,7 +133,7 @@ prepare() {
 
 	# s390x/musl patches
 	_clear_vendor_checksums libc
-	_clear_vendor_checksums libc-0.2.119
+	_clear_vendor_checksums libc-0.2.126
 }
 
 build() {
@@ -158,6 +158,7 @@ build() {
 		--tools="cargo,clippy,rustfmt,src" \
 		--enable-llvm-link-shared \
 		--enable-option-checking \
+		--enable-profiler \
 		--enable-locked-deps \
 		--enable-vendor \
 		--dist-compression-formats=gz \
@@ -166,6 +167,7 @@ build() {
 		--set="rust.codegen-units=1" \
 		--set="rust.codegen-units-std=1" \
 		--set="rust.parallel-compiler=false" \
+		--set="rust.description=Alpine Linux" \
 		--set="target.$_target.llvm-config=/usr/lib/llvm$_llvmver/bin/llvm-config" \
 		--set="target.$_target.musl-root=/usr" \
 		--set="target.$_target.crt-static=false" \
@@ -345,9 +347,9 @@ _mv() {
 	mv "$@"
 }
 
-sha512sums="af99627a2e50fbb066747041fbe64c05cdf277beaade48ab3e43f8c0d78e146b6f0c729d76517d83b5be76b33c1051637d51cbaeacb65139f37244511693a7a3  rust-1.62.1-x86_64-unknown-linux-musl.tar.xz
-0dd3cd1546bd9c1438afe0c4694e1ed80507f6b437674682c0474e13f83457e9ced4560ddeee58602e01837140f9e34a9e24c6828643dd6f613e07755af6997c  rustc-1.63.0-src.tar.xz
-bbb32a20246889b1624b0627f474ada61fc1ba475d09c62f1993c306e7f81b8daa0ca7105d65b74d60ca1b8050a490146dcc81f2bb2cd5952937d962e6b214fc  musl-fix-linux_musl_base.patch
+sha512sums="c722ddb6a7bfc5b8767e2a37e697f625b4e775582423720d1b01737ec3269c82e2212f7e5a672a062fa49c8c15c0d2d182ea14dd048cfd9e07704cbc04fd8ef0  rust-1.64.0-x86_64-unknown-linux-musl.tar.xz
+3d0369ed3028209c4ecb9b9e7b5f5e3a20be8cc05199675df4f091d62a96c0734bc1dbd7630928fe162792392ec6d0daf9ceed10771531ce022200c7b631e3be  rustc-1.65.0-src.tar.xz
+416ac00f70645ca3afc6eb40b3c06ac4e6c13bf8d04109616c8170093aab3c1ddb19ace5252a37895f81d4bc6669918804dfd84eb0c5fa07c9e810dbffe39354  musl-fix-linux_musl_base.patch
 2d401a01d2c2db92624d672018342907a41aa4a3842708c0a2ab694af0396d568aca4835d1075f244d77c0a4c45e67f893fd175fd97cd7f758090eba9972eba6  need-rpath.patch
 bc28e1edae88f48eb0368cd0905280c323d521c7e13b6fc2bb1fb6e57274fa418afdc9cb3342f4928842e309d0573b98e82976159541c88b35694dceaf7a82e4  need-ssp_nonshared.patch
 03a179e31c95f88a98fb1ba6b2fd0baaf9fe1a74ade76d3096fe45ddc5e453c25109355e667783d9be1bcc585445d07b7270cb3e6e403de971049714f2c6f91a  alpine-move-py-scripts-to-share.patch
