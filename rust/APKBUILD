@@ -47,6 +47,7 @@ depends="$pkgname-stdlib=$pkgver-r$pkgrel gcc musl-dev"
 makedepends_build="
 	gcc-$_ctarget
 	!libgit2-dev
+	bash
 	coreutils
 	curl-dev
 	file
