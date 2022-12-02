@@ -1,6 +1,6 @@
-ARG ALPINE_VERSION=3.15
+ARG ALPINE_VERSION=3.17
 FROM alpine:$ALPINE_VERSION AS abuild
-ARG ALPINE_VERSION=3.15
+ARG ALPINE_VERSION=3.17
 ENV ALPINE_VERSION=$ALPINE_VERSION
 SHELL ["/bin/ash", "-e", "-o", "pipefail", "-c"]
 
@@ -8,6 +8,7 @@ ENV USERNAME=docker-abuild-arm
 ENV USERHOME=/home/docker-abuild-arm
 RUN env && test -n "$ALPINE_VERSION" \
  && sed -i 's,http:,https:,g' /etc/apk/repositories \
+ && cp /usr/share/apk/keys/aarch64/* /usr/share/apk/keys/arm*/* /etc/apk/keys/ \
  && apk add --no-cache alpine-sdk sudo util-linux \
  && adduser -D "$USERNAME" -h "$USERHOME" \
  && addgroup "$USERNAME" abuild \
