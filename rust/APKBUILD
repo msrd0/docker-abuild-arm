@@ -4,11 +4,12 @@
 # Contributor: Shiz <hi@shiz.me>
 # Contributor: Jeizsm <jeizsm@gmail.com>
 # Contributor: Ariadne Conill <ariadne@dereferenced.org>
+# Contributor: psykose <alice@ayaya.dev>
 # Maintainer: Dominic Meiser <git@msrd0.de>
 pkgname=rust
-pkgver=1.65.0
+pkgver=1.67.1
 _llvmver=15
-_bootver=1.64.0
+_bootver=1.66.1
 pkgrel=0
 pkgdesc="The Rust Programming Language"
 url="https://www.rust-lang.org/"
@@ -92,16 +93,16 @@ subpackages="
 source="
 	https://static.rust-lang.org/dist/rust-$_bootver-x86_64-unknown-linux-musl.tar.xz
 	https://static.rust-lang.org/dist/rustc-$pkgver-src.tar.xz
+	alpine-move-py-scripts-to-share.patch
+	alpine-target.patch
+	do-not-install-libunwind-source.patch
+	gcc-eh-libunwind.patch
+	install-template-shebang.patch
 	musl-fix-linux_musl_base.patch
 	need-rpath.patch
 	need-ssp_nonshared.patch
-	alpine-move-py-scripts-to-share.patch
-	alpine-target.patch
-	install-template-shebang.patch
-	do-not-install-libunwind-source.patch
-	0001-When-linking-statically-on-musl-based-system-also-li.patch
-	check-rustc
 	9950-alpine-arm-target-linker.patch
+	check-rustc
 	"
 builddir="$srcdir/rustc-$pkgver-src"
 
@@ -127,14 +128,6 @@ unset CARGO_PROFILE_RELEASE_CODEGEN_UNITS
 # rust checksums files in vendor/, but we have to patch a few files...
 _clear_vendor_checksums() {
 	sed -i 's/\("files":{\)[^}]*/\1/' vendor/$1/.cargo-checksum.json
-}
-
-prepare() {
-	default_prepare
-
-	# s390x/musl patches
-	_clear_vendor_checksums libc
-	_clear_vendor_checksums libc-0.2.126
 }
 
 build() {
@@ -260,6 +253,10 @@ package() {
 	if [ "$_build" != "$_target" ]; then
 		rm -rf "$pkgdir"/usr/lib/rustlib/$_build
 	fi
+
+	# for some reason the tar archive gets some root-only files for rlibs
+	find "$pkgdir"/usr/lib/rustlib -type f -perm -600 -exec chmod 644 {} \;
+	find "$pkgdir"/usr/lib/rustlib -type f -perm -700 -exec chmod 755 {} \;
 }
 
 stdlib() {
