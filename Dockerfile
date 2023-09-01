@@ -73,13 +73,13 @@ RUN EXTRADEPENDS_TARGET="musl musl-dev" BOOTSTRAP=nobase APKBUILD=aports/main/gc
 RUN BOOTSTRAP=nobase APKBUILD=aports/main/build-base/APKBUILD abuild -r
 
 # enable main repository for the community section
-RUN echo "$USERHOME/packages-arm/main" | sudo tee -a /etc/apk/repositories
+#RUN echo "$USERHOME/packages-arm/main" | sudo tee -a /etc/apk/repositories
 
-# build rust - slightly modified, but we'll put it in the community repo anyways
-RUN mkdir community
-COPY rust community/rust
-RUN sudo chown -R docker-abuild-arm community/rust \
- && EXTRADEPENDS_TARGET="libgcc musl musl-dev" APKBUILD=community/rust/APKBUILD abuild -r
+# build rust - slightly modified, but we'll put it in the main repo anyways
+RUN mkdir main
+COPY rust main/rust
+RUN sudo chown -R docker-abuild-arm main/rust \
+ && EXTRADEPENDS_TARGET="libgcc musl musl-dev" APKBUILD=main/rust/APKBUILD abuild -r
 
 # cleanup arm packages - those come from the alpine repositories
 RUN rm -r "$HOME/packages-arm/main/$CTARGET"
