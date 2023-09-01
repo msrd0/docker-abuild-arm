@@ -7,9 +7,9 @@
 # Contributor: psykose <alice@ayaya.dev>
 # Maintainer: Dominic Meiser <git@msrd0.de>
 pkgname=rust
-pkgver=1.68.0
-_llvmver=15
-_bootver=1.67.1
+pkgver=1.72.0
+_llvmver=16
+_bootver=1.71.1
 pkgrel=0
 pkgdesc="The Rust Programming Language"
 url="https://www.rust-lang.org/"
@@ -56,6 +56,7 @@ makedepends_build="
 	llvm$_llvmver-dev
 	llvm$_llvmver-test-utils
 	openssl-dev
+	patchelf
 	python3
 	tar
 	xz-dev
@@ -66,6 +67,7 @@ makedepends_host="
 	libssh2-dev
 	llvm$_llvmver-dev
 	openssl-dev
+	scudo-malloc
 	zlib-dev
 "
 
@@ -158,10 +160,14 @@ build() {
 		--dist-compression-formats=gz \
 		--python="python3" \
 		--set="rust.musl-root=/usr" \
+		--set="rust.backtrace-on-ice=true" \
 		--set="rust.codegen-units=1" \
 		--set="rust.codegen-units-std=1" \
+		--set="rust.deny-warnings=false" \
 		--set="rust.parallel-compiler=false" \
-		--set="rust.description=Alpine Linux" \
+		--set="rust.remap-debuginfo=true" \
+		--set="rust.description=Alpine Linux $pkgver-r$pkgrel" \
+		--set="rust.lto=thin" \
 		--set="target.$_target.llvm-config=/usr/lib/llvm$_llvmver/bin/llvm-config" \
 		--set="target.$_target.musl-root=/usr" \
 		--set="target.$_target.crt-static=false" \
@@ -182,10 +188,6 @@ build() {
 		--set="target.$_build.cxx=c++" \
 		--set="target.$_build.ar=ar" \
 		--set="target.$_build.linker=gcc"
-
-	# Allow warnings instead of just aborting the build
-	sed 's/#deny-warnings = .*/deny-warnings = false/' -i config.toml
-	sed 's|deny(warnings,|deny(|' -i src/bootstrap/lib.rs
 	
 	_jobs=
 	[ -n "$JOBS" ] && _jobs="--jobs $JOBS"
@@ -241,7 +243,7 @@ package() {
 	_mv usr/lib/rustlib/etc/*.py $_sharedir/etc/
 	rmdir -p usr/lib/rustlib/etc 2>/dev/null || true
 
-	_mv usr/etc/bash_completion.d/cargo usr/share/bash-completion/completions/
+	_mv usr/src/etc/bash_completion.d/cargo usr/share/bash-completion/completions/
 	rmdir -p usr/etc/bash_completion.d 2>/dev/null || true
 
 	_mv usr/lib/rustlib/src/rust usr/src/
@@ -255,8 +257,16 @@ package() {
 	fi
 
 	# for some reason the tar archive gets some root-only files for rlibs
-	find "$pkgdir"/usr/lib/rustlib -type f -perm -600 -exec chmod 644 {} \;
-	find "$pkgdir"/usr/lib/rustlib -type f -perm -700 -exec chmod 755 {} \;
+	find "$pkgdir"/usr/lib/rustlib -type f -perm -600 -exec chmod 644 {} \+
+	find "$pkgdir"/usr/lib/rustlib -type f -perm -700 -exec chmod 755 {} \+
+
+	# link scudo to tools by default
+	# this is roughly 20+% faster with no downside except slightly higher
+	# memory use, but this is a compiler that already uses a ton of memory
+	patchelf --add-needed libscudo.so \
+		"$pkgdir"/usr/bin/cargo \
+		"$pkgdir"/usr/bin/rustc \
+		"$pkgdir"/usr/bin/rustdoc
 }
 
 stdlib() {
@@ -346,16 +356,16 @@ _mv() {
 }
 
 sha512sums="
-9a3eb67239a88b875fe55846a2fffbbb1f2a4cc8eed18b5558f0f989d544a8ddfe0861d5b2b860a779833a1660ee622b30320ec9ef83e841724f7a32f08fda06  rust-1.67.1-x86_64-unknown-linux-musl.tar.xz
-f6cc5c06488080f2d7ce8c4f5adf7ca8ae8b10caea627b57876b051593af1201a48823d0abf5fcbcd344b46606b53957569db9844d647a5fdc4abca06e260f3a  rustc-1.68.0-src.tar.xz
+55b507a30d62a36aece4a2c2cab985e09d9552ae331c1cab51d949777261600e61d4f05ca1e81fe8b37591fb91939b1cdb55e6930d70e5126eea1a78caa74eb4  rust-1.71.1-x86_64-unknown-linux-musl.tar.xz
+aed27c1babfec7f9b0815bc395302cff4f8e8ed83d8d3bde202f6c86fba4aec14ad2d3e99f4e22618c6727d876262511bfbcd83513731ea4b9c664462c97945b  rustc-1.72.0-src.tar.xz
 03a179e31c95f88a98fb1ba6b2fd0baaf9fe1a74ade76d3096fe45ddc5e453c25109355e667783d9be1bcc585445d07b7270cb3e6e403de971049714f2c6f91a  alpine-move-py-scripts-to-share.patch
 a97bc511a8fd5f71ea7095efa4cf97048badc4ba46d1bde1b7d5ede2879f099157b8b6f5a03278c9f5766d809ea5d6a1affadce7ceb47d0cc134fde8bc70d51d  alpine-target.patch
 7af23c34096f7a03c5a1b40aa07e00dd6193743c872881018a9baa900f240c6e44918e481ab5ed7787a70ef361e4aeec2a7719bcd695f52988262e23271b44e5  do-not-install-libunwind-source.patch
 92916225c21742941aaf415d75d330fe2baf77a8226c076e862f4413068d5dee7b08c4b3182f69957ea9a51a0dcde145031565289015b6e3c31894fb396e4eb1  gcc-eh-libunwind.patch
-7d59258d4462eba0207739a5c0c8baf1f19d9a396e5547bb4d59d700eb94d50ba6add2e523f3e94e29e993821018594625ea4ac86304fb58f7f8c82622a26ab0  install-template-shebang.patch
-416ac00f70645ca3afc6eb40b3c06ac4e6c13bf8d04109616c8170093aab3c1ddb19ace5252a37895f81d4bc6669918804dfd84eb0c5fa07c9e810dbffe39354  musl-fix-linux_musl_base.patch
+2df372bbf9b8c58c2e2ff69cb48ef8b2046710b7f0762e3bf64443298a5973d463227881247aa7a5c31b39e689035ae6283d5f3a209c8dd5d8a39aa0ab3e9a9a  install-template-shebang.patch
+47d070ccac8d2260b2aa46758aad263e8c7dc4ecc68fcee4619e89089f300c49a050524a241b5c3b32711823fcc062a793aca80e669d7d79395782d1823dba8a  musl-fix-linux_musl_base.patch
 2d401a01d2c2db92624d672018342907a41aa4a3842708c0a2ab694af0396d568aca4835d1075f244d77c0a4c45e67f893fd175fd97cd7f758090eba9972eba6  need-rpath.patch
-b722bc2787748e208abdc50a496d6b155b2d786bb28cbd5726535534e322a87c191db161d94e06154e126eaf81ca3634f10b364b7212f0f3154e5cca859980bd  need-ssp_nonshared.patch
+bceb500942913d1a01a764dc7ee35437e83b9aec3f945c9186396264df240f465e5ac4d1f70e7252ca4ec346ffaf7c79747ba1a53ff4123cbd408cfa5effa214  need-ssp_nonshared.patch
 70be1a879218fd2f5fcb907c86fbb61d17d6f158db0a4167ec3551fddd6097ea551e29f4d2cef5a2022eff69706d6b6270a5260792de9e76a85d9807d7b40f97  9950-alpine-arm-target-linker.patch
 c31fdfe8a9b3411576c75da46645cf0465b9053000a2ab49cf9b2f2733f679d6d33acbf236d67a20e14935d094a685453b7f1840180249f39d610fd0902c3125  check-rustc
 "
