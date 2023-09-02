@@ -242,7 +242,7 @@ package() {
 	_mv usr/lib/rustlib/etc/*.py $_sharedir/etc/
 	rmdir -p usr/lib/rustlib/etc 2>/dev/null || true
 
-	_mv usr/src/etc/bash_completion.d/cargo usr/share/bash-completion/completions/
+	_mv usr/etc/bash_completion.d/cargo usr/share/bash-completion/completions/
 	rmdir -p usr/etc/bash_completion.d 2>/dev/null || true
 
 	_mv usr/lib/rustlib/src/rust usr/src/
