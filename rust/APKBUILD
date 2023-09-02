@@ -167,7 +167,6 @@ build() {
 		--set="rust.parallel-compiler=false" \
 		--set="rust.remap-debuginfo=true" \
 		--set="rust.description=Alpine Linux $pkgver-r$pkgrel" \
-		--set="rust.lto=thin" \
 		--set="target.$_target.llvm-config=/usr/lib/llvm$_llvmver/bin/llvm-config" \
 		--set="target.$_target.musl-root=/usr" \
 		--set="target.$_target.crt-static=false" \
