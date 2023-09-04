@@ -151,7 +151,7 @@ build() {
 		--llvm-root="/usr/lib/llvm$_llvmver" \
 		--disable-docs \
 		--enable-extended \
-		--tools="cargo,clippy,rustfmt,src" \
+		--tools="cargo,clippy,rustdoc,rustfmt,src" \
 		--enable-llvm-link-shared \
 		--enable-option-checking \
 		--enable-profiler \
