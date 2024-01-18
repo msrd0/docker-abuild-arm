@@ -7,9 +7,9 @@
 # Contributor: psykose <alice@ayaya.dev>
 # Maintainer: Dominic Meiser <git@msrd0.de>
 pkgname=rust
-pkgver=1.72.0
-_llvmver=16
-_bootver=1.71.1
+pkgver=1.75.0
+_llvmver=17
+_bootver=1.74.1
 pkgrel=0
 pkgdesc="The Rust Programming Language"
 url="https://www.rust-lang.org/"
@@ -355,8 +355,8 @@ _mv() {
 }
 
 sha512sums="
-55b507a30d62a36aece4a2c2cab985e09d9552ae331c1cab51d949777261600e61d4f05ca1e81fe8b37591fb91939b1cdb55e6930d70e5126eea1a78caa74eb4  rust-1.71.1-x86_64-unknown-linux-musl.tar.xz
-aed27c1babfec7f9b0815bc395302cff4f8e8ed83d8d3bde202f6c86fba4aec14ad2d3e99f4e22618c6727d876262511bfbcd83513731ea4b9c664462c97945b  rustc-1.72.0-src.tar.xz
+8fb65ea5538c4a0865ac75561bb8df71d3703f1d4ed603f51752844f1bea02a9a52858587f3ee776a5ec27e793762a1b7c9cd845bceedd8a313d7ce2ad476ca1  rust-1.74.1-x86_64-unknown-linux-musl.tar.xz
+7b0f25d91b1b5c317980fc88e059200bd43b56a70b445fbc72fb9b96e09775bfd3a98e9bd9d662af80f0ce3aef527c777ee82777e96ca876f47a972d63da8606  rustc-1.75.0-src.tar.xz
 4ecf3fed9495f8813e11e1423e77d57033ca98909709a4a8585cdb8150276c83814609e7ce34aa83b7e463396b62f873b68b16fc31bf8f9132d63bcf8f708926  alpine-move-py-scripts-to-share.patch
 a97bc511a8fd5f71ea7095efa4cf97048badc4ba46d1bde1b7d5ede2879f099157b8b6f5a03278c9f5766d809ea5d6a1affadce7ceb47d0cc134fde8bc70d51d  alpine-target.patch
 7af23c34096f7a03c5a1b40aa07e00dd6193743c872881018a9baa900f240c6e44918e481ab5ed7787a70ef361e4aeec2a7719bcd695f52988262e23271b44e5  do-not-install-libunwind-source.patch
