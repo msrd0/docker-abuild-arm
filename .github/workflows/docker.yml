@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: ["aarch64", "armhf", "armv7"]
-        alpine_version: ["3.19"]
+        alpine_version: ["3.18", "3.19"]
         latest_alpine_version: ["3.19"]
     steps:
       - uses: actions/checkout@v4
@@ -19,19 +19,19 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           image="ghcr.io/msrd0/abuild-${{matrix.arch}}"
-          tags="--tag $image:${{matrix.alpine_version}}"
-          [ "${{matrix.alpine_version}}" == "${{matrix.latest_alpine_version}}" ] && tags="$tag --tag $image"
+          tag="$image:${{matrix.alpine_version}}"
           docker build . \
             --pull \
-            $tags \
+            --tag "$tag" \
             --build-arg ALPINE_VERSION=${{matrix.alpine_version}} \
             --build-arg CTARGET=${{matrix.arch}} \
             --build-arg JOBS=2 \
             --memory $(( 6500 * 1024 * 1024 ))
           
           docker login -u msrd0 -p "${{secrets.GITHUB_TOKEN}}" ghcr.io
-          for tag in $tags; do
-            if [ "$tag" != "--tag" ]; then
-              docker push "$tag"
-            fi
-          done
+          docker push "$tag"
+
+          if [ "${{matrix.alpine_version}}" == "${{matrix.latest_alpine_version}}" ]; then
+            docker tag "$tag" "$image:latest"
+            docker push "$image:latest"
+          fi
