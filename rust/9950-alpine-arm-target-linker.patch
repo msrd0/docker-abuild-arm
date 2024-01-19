@@ -3,8 +3,8 @@ we give them correct, working linker as arguments to the
 configure script.
 
 diff -Naur rustc-1.56.1-src.bak/compiler/rustc_target/src/spec/aarch64_alpine_linux_musl.rs rustc-1.56.1-src/compiler/rustc_target/src/spec/aarch64_alpine_linux_musl.rs
---- rustc-1.56.1-src.bak/compiler/rustc_target/src/spec/target/aarch64_alpine_linux_musl.rs	2021-11-02 14:04:50.738628254 +0100
-+++ rustc-1.56.1-src/compiler/rustc_target/src/spec/target/aarch64_alpine_linux_musl.rs	2021-11-02 14:08:04.550460281 +0100
+--- rustc-1.56.1-src.bak/compiler/rustc_target/src/spec/targets/aarch64_alpine_linux_musl.rs	2021-11-02 14:04:50.738628254 +0100
++++ rustc-1.56.1-src/compiler/rustc_target/src/spec/targets/aarch64_alpine_linux_musl.rs	2021-11-02 14:08:04.550460281 +0100
 @@ -4,6 +4,7 @@
      let mut base = super::aarch64_unknown_linux_musl::target();
  
@@ -14,8 +14,8 @@ diff -Naur rustc-1.56.1-src.bak/compiler/rustc_target/src/spec/aarch64_alpine_li
      base.options.crt_static_default = false;
      base.options.static_position_independent_executables = true;
 diff -Naur rustc-1.56.1-src.bak/compiler/rustc_target/src/spec/armv6_alpine_linux_musleabihf.rs rustc-1.56.1-src/compiler/rustc_target/src/spec/armv6_alpine_linux_musleabihf.rs
---- rustc-1.56.1-src.bak/compiler/rustc_target/src/spec/target/armv6_alpine_linux_musleabihf.rs	2021-11-02 14:04:50.738628254 +0100
-+++ rustc-1.56.1-src/compiler/rustc_target/src/spec/target/armv6_alpine_linux_musleabihf.rs	2021-11-02 14:08:36.230218880 +0100
+--- rustc-1.56.1-src.bak/compiler/rustc_target/src/spec/targets/armv6_alpine_linux_musleabihf.rs	2021-11-02 14:04:50.738628254 +0100
++++ rustc-1.56.1-src/compiler/rustc_target/src/spec/targets/armv6_alpine_linux_musleabihf.rs	2021-11-02 14:08:36.230218880 +0100
 @@ -4,6 +4,7 @@
      let mut base = super::arm_unknown_linux_musleabihf::target();
  
@@ -25,8 +25,8 @@ diff -Naur rustc-1.56.1-src.bak/compiler/rustc_target/src/spec/armv6_alpine_linu
      base.options.crt_static_default = false;
      base.options.static_position_independent_executables = true;
 diff -Naur rustc-1.56.1-src.bak/compiler/rustc_target/src/spec/armv7_alpine_linux_musleabihf.rs rustc-1.56.1-src/compiler/rustc_target/src/spec/armv7_alpine_linux_musleabihf.rs
---- rustc-1.56.1-src.bak/compiler/rustc_target/src/spec/target/armv7_alpine_linux_musleabihf.rs	2021-11-02 14:04:50.738628254 +0100
-+++ rustc-1.56.1-src/compiler/rustc_target/src/spec/target/armv7_alpine_linux_musleabihf.rs	2021-11-02 14:09:01.046697127 +0100
+--- rustc-1.56.1-src.bak/compiler/rustc_target/src/spec/targets/armv7_alpine_linux_musleabihf.rs	2021-11-02 14:04:50.738628254 +0100
++++ rustc-1.56.1-src/compiler/rustc_target/src/spec/targets/armv7_alpine_linux_musleabihf.rs	2021-11-02 14:09:01.046697127 +0100
 @@ -4,6 +4,7 @@
      let mut base = super::armv7_unknown_linux_musleabihf::target();
  
