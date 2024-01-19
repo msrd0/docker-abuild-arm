@@ -96,6 +96,7 @@ subpackages="
 source="
 	https://static.rust-lang.org/dist/rust-$_bootver-x86_64-unknown-linux-musl.tar.xz
 	https://static.rust-lang.org/dist/rustc-$pkgver-src.tar.xz
+	https://github.com/rust-lang/rust/pull/119582.patch
 	alpine-move-py-scripts-to-share.patch
 	alpine-target.patch
 	do-not-install-libunwind-source.patch
@@ -358,6 +359,7 @@ _mv() {
 sha512sums="
 8fb65ea5538c4a0865ac75561bb8df71d3703f1d4ed603f51752844f1bea02a9a52858587f3ee776a5ec27e793762a1b7c9cd845bceedd8a313d7ce2ad476ca1  rust-1.74.1-x86_64-unknown-linux-musl.tar.xz
 7b0f25d91b1b5c317980fc88e059200bd43b56a70b445fbc72fb9b96e09775bfd3a98e9bd9d662af80f0ce3aef527c777ee82777e96ca876f47a972d63da8606  rustc-1.75.0-src.tar.xz
+c8a6fd6035dcf6542e2fb6da5d4c49fb0f44379ebc663d8c793bc3cc2defb4a1f431cdc136797ed824a3a70f445c6127a6357038ef5a5b79b09bbd481d64dce6  119582.patch
 4ecf3fed9495f8813e11e1423e77d57033ca98909709a4a8585cdb8150276c83814609e7ce34aa83b7e463396b62f873b68b16fc31bf8f9132d63bcf8f708926  alpine-move-py-scripts-to-share.patch
 a97bc511a8fd5f71ea7095efa4cf97048badc4ba46d1bde1b7d5ede2879f099157b8b6f5a03278c9f5766d809ea5d6a1affadce7ceb47d0cc134fde8bc70d51d  alpine-target.patch
 20e34a6764dba6fe64d42292bbb3fcd953bc2ac40d15c35f09ba8ce9db82b0db53423a2abee341ee298e0eebf542071b3f2eddab4a9daa622ddf48bb4ff2b626  do-not-install-libunwind-source.patch
