@@ -319,7 +319,6 @@ cargo() {
 	provides="cargo-bootstrap=$pkgver-r$pkgrel"
 
 	amove usr/bin/cargo
-	amove usr/libexec/cargo-credential-1password
 }
 
 _cargo_bashcomp() {
