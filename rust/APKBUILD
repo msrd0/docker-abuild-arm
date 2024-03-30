@@ -7,10 +7,10 @@
 # Contributor: psykose <alice@ayaya.dev>
 # Maintainer: Dominic Meiser <git@msrd0.de>
 pkgname=rust
-pkgver=1.75.0
+pkgver=1.77.1
 _llvmver=16
 [ "$ALPINE_VERSION" == "3.19" ] && _llvmver=17
-_bootver=1.74.1
+_bootver=1.76.0
 pkgrel=0
 pkgdesc="The Rust Programming Language"
 url="https://www.rust-lang.org/"
@@ -96,7 +96,6 @@ subpackages="
 source="
 	https://static.rust-lang.org/dist/rust-$_bootver-x86_64-unknown-linux-musl.tar.gz
 	https://static.rust-lang.org/dist/rustc-$pkgver-src.tar.gz
-	https://github.com/rust-lang/rust/pull/119582.patch
 	alpine-move-py-scripts-to-share.patch
 	alpine-target.patch
 	do-not-install-libunwind-source.patch
@@ -300,6 +299,7 @@ lldb() {
 
 	amove usr/bin/rust-lldb
 	amove $_sharedir/etc/lldb_*.py
+	amove usr/lib/rustlib/etc/lldb_commands
 }
 
 src() {
@@ -356,9 +356,8 @@ _mv() {
 }
 
 sha512sums="
-ad17db8ce58ce877c987d630a26c519a014098a9cb5689b0a00d03e2e73082d3413053555e77cea6490167cff09885291e257d0ca0392bb7746b97fe52ecfea8  rust-1.74.1-x86_64-unknown-linux-musl.tar.gz
-c0fbc7349082bdda5693664f86e2814e3a15272dd1b5028859e9d0d864b4375fae94b7039e14567d25bc9c3c4d8187734a163a2522b75cb1f267f7b9e57c3385  rustc-1.75.0-src.tar.gz
-c8a6fd6035dcf6542e2fb6da5d4c49fb0f44379ebc663d8c793bc3cc2defb4a1f431cdc136797ed824a3a70f445c6127a6357038ef5a5b79b09bbd481d64dce6  119582.patch
+9edeb8ade83fd0182313a9c05df1f6fbc64777929ba3b82467f4be024ab971eebfef42e203059d033cbc32a52306a89035eeb65c820d3abb6bbdf19d17ef996a  rust-1.76.0-x86_64-unknown-linux-musl.tar.gz
+b83d3ea3231bdaf3891704929d1a28340948cca9de11ded4cd5f4541b40d85d304f5e0dd955de93097e0cfe004cc993c400c332255063ff73e202bfbbbfab779  rustc-1.77.1-src.tar.gz
 4ecf3fed9495f8813e11e1423e77d57033ca98909709a4a8585cdb8150276c83814609e7ce34aa83b7e463396b62f873b68b16fc31bf8f9132d63bcf8f708926  alpine-move-py-scripts-to-share.patch
 811840cd7fce7c21ed287136716eec101b3ee95f284733f4144f7958f246699879840b5530b1a4e4c01c965cc2525970424aa8e35facb49ad882c73cbf5ffb5c  alpine-target.patch
 20e34a6764dba6fe64d42292bbb3fcd953bc2ac40d15c35f09ba8ce9db82b0db53423a2abee341ee298e0eebf542071b3f2eddab4a9daa622ddf48bb4ff2b626  do-not-install-libunwind-source.patch
