@@ -7,7 +7,7 @@
 # Contributor: psykose <alice@ayaya.dev>
 # Maintainer: Dominic Meiser <git@msrd0.de>
 pkgname=rust
-pkgver=1.77.1
+pkgver=1.77.2
 _llvmver=16
 [ "$ALPINE_VERSION" == "3.19" ] && _llvmver=17
 _bootver=1.76.0
@@ -322,21 +322,20 @@ cargo() {
 }
 
 _cargo_bashcomp() {
+	default_bashcomp
+	
 	pkgdesc="Bash completions for cargo"
 	license="Apache-2.0 MIT"
-	depends=""
 	install_if="cargo=$pkgver-r$pkgrel bash-completion"
-
-	amove usr/share/bash-completion
 }
 
 _cargo_zshcomp() {
+	default_zshcomp
+	
 	pkgdesc="ZSH completions for cargo"
 	license="Apache-2.0 MIT"
 	depends=""
 	install_if="cargo=$pkgver-r$pkgrel zsh"
-
-	amove usr/share/zsh/site-functions/_cargo
 }
 
 _cargo_doc() {
@@ -357,7 +356,7 @@ _mv() {
 
 sha512sums="
 9edeb8ade83fd0182313a9c05df1f6fbc64777929ba3b82467f4be024ab971eebfef42e203059d033cbc32a52306a89035eeb65c820d3abb6bbdf19d17ef996a  rust-1.76.0-x86_64-unknown-linux-musl.tar.gz
-b83d3ea3231bdaf3891704929d1a28340948cca9de11ded4cd5f4541b40d85d304f5e0dd955de93097e0cfe004cc993c400c332255063ff73e202bfbbbfab779  rustc-1.77.1-src.tar.gz
+5a0991228295aff585aba5c79344150bea49565a938bfabc61f564d736b7bfeb50593b1f2e448de1bd16b99ebccabf97c6e6091bc723536e6f733c135fe46c79  rustc-1.77.2-src.tar.gz
 4ecf3fed9495f8813e11e1423e77d57033ca98909709a4a8585cdb8150276c83814609e7ce34aa83b7e463396b62f873b68b16fc31bf8f9132d63bcf8f708926  alpine-move-py-scripts-to-share.patch
 811840cd7fce7c21ed287136716eec101b3ee95f284733f4144f7958f246699879840b5530b1a4e4c01c965cc2525970424aa8e35facb49ad882c73cbf5ffb5c  alpine-target.patch
 20e34a6764dba6fe64d42292bbb3fcd953bc2ac40d15c35f09ba8ce9db82b0db53423a2abee341ee298e0eebf542071b3f2eddab4a9daa622ddf48bb4ff2b626  do-not-install-libunwind-source.patch
@@ -365,7 +364,7 @@ b83d3ea3231bdaf3891704929d1a28340948cca9de11ded4cd5f4541b40d85d304f5e0dd955de930
 b283d31cc8d6559aa639d44f776e97c2a1e0f23c717b6784e549861b881555bd467fa6023180866aae81a9a58c5f83e306940ee645f3c6733a1bdef6130036c9  install-template-shebang.patch
 17f98e9e2384c509b08e7b59b1b0e8ff27c8b1f5e222a4e46a8170f5d0a8493a05a70d2e0de0f11bb7d99587de077c115976e50f69e76963983dd41e72152e86  musl-fix-linux_musl_base.patch
 2d401a01d2c2db92624d672018342907a41aa4a3842708c0a2ab694af0396d568aca4835d1075f244d77c0a4c45e67f893fd175fd97cd7f758090eba9972eba6  need-rpath.patch
-bceb500942913d1a01a764dc7ee35437e83b9aec3f945c9186396264df240f465e5ac4d1f70e7252ca4ec346ffaf7c79747ba1a53ff4123cbd408cfa5effa214  need-ssp_nonshared.patch
+b6bf7be0b2eb2d31b4d9979852d5ec3ebc05d005b82e2f6b02394da6c43502729d32086ec2ffaf42f1006838ea5c2898b82a4172f9053fe08e978adcb711d5fa  need-ssp_nonshared.patch
 90b42eb8c1e395e141f4372cdf1ed8cc59c153b3a219e7f79f7112c571407c1de38ffb306df14b1b9973334c8b95ce0c5e0339ab80024831fb4df8f5a3623bba  9950-alpine-arm-target-linker.patch
 c31fdfe8a9b3411576c75da46645cf0465b9053000a2ab49cf9b2f2733f679d6d33acbf236d67a20e14935d094a685453b7f1840180249f39d610fd0902c3125  check-rustc
 "
