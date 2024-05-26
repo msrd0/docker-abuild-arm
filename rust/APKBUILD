@@ -7,10 +7,11 @@
 # Contributor: psykose <alice@ayaya.dev>
 # Maintainer: Dominic Meiser <git@msrd0.de>
 pkgname=rust
-pkgver=1.77.2
+pkgver=1.78.0
 _llvmver=16
 [ "$ALPINE_VERSION" == "3.19" ] && _llvmver=17
-_bootver=1.76.0
+[ "$ALPINE_VERSION" == "3.20" ] && _llvmver=18
+_bootver=1.77.2
 pkgrel=0
 pkgdesc="The Rust Programming Language"
 url="https://www.rust-lang.org/"
