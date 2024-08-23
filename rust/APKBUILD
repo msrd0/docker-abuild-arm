@@ -7,11 +7,11 @@
 # Contributor: psykose <alice@ayaya.dev>
 # Maintainer: Dominic Meiser <git@msrd0.de>
 pkgname=rust
-pkgver=1.78.0
+pkgver=1.80.1
 _llvmver=16
 [ "$ALPINE_VERSION" == "3.19" ] && _llvmver=17
 [ "$ALPINE_VERSION" == "3.20" ] && _llvmver=18
-_bootver=1.77.2
+_bootver=1.79.0
 pkgrel=0
 pkgdesc="The Rust Programming Language"
 url="https://www.rust-lang.org/"
@@ -249,6 +249,8 @@ package() {
 
 	_mv usr/lib/rustlib/src/rust usr/src/
 	ln -s ../../../src/rust usr/lib/rustlib/src/rust
+	mv usr/lib/rustlib/rustc-src/rust usr/src/rustc
+	ln -s ../../../src/rustc usr/lib/rustlib/rustc-src/rust
 
 	# Remove some clutter.
 	cd "$pkgdir"/usr/lib/rustlib
@@ -310,6 +312,7 @@ src() {
 
 	amove usr/src
 	amove usr/lib/rustlib/src
+	above usr/lib/rustlib/rustc-src
 }
 
 cargo() {
