@@ -122,6 +122,7 @@ ldpath="/$_rlibdir"
 
 export OPENSSL_NO_VENDOR=1
 export RUST_BACKTRACE=1
+export BOOTSTRAP_SKIP_TARGET_SANITY=1
 
 # absolutely do not set these here, rust "knows" what it's doing
 unset CARGO_PROFILE_RELEASE_LTO
@@ -312,7 +313,7 @@ src() {
 
 	amove usr/src
 	amove usr/lib/rustlib/src
-	above usr/lib/rustlib/rustc-src
+	amove usr/lib/rustlib/rustc-src
 }
 
 cargo() {
