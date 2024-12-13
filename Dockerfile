@@ -52,6 +52,11 @@ RUN mkdir -p "$CBUILDROOT/etc/apk/keys" \
 
 # download aports
 RUN git clone --depth=1 --branch=$ALPINE_VERSION-stable https://gitlab.alpinelinux.org/alpine/aports.git
+COPY 0001-main-gcc-ignore-no-so.patch .
+RUN if [ $ALPINE_VERSION == 3.21 ]; then \
+		cd aports && \
+		patch -Np1 -i ../0001-main-gcc-ignore-no-so.patch; \
+	fi
 
 # cross-build binutils
 RUN BOOTSTRAP=nobase APKBUILD=aports/main/binutils/APKBUILD abuild -r
@@ -61,6 +66,7 @@ RUN CHOST="$CTARGET" BOOTSTRAP=nocc APKBUILD=aports/main/musl/APKBUILD abuild -r
 
 # minimal gcc
 ENV LANG_ADA=false
+ENV LANG_D=false
 RUN EXTRADEPENDS_HOST=musl-dev BOOTSTRAP=nolibc APKBUILD=aports/main/gcc/APKBUILD abuild -r
 
 # cross-build musl

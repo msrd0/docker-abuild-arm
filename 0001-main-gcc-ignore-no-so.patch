@@ -1,0 +1,13 @@
+diff --git a/main/gcc/APKBUILD b/main/gcc/APKBUILD
+index 2bc65947..17a53d03 100644
+--- a/main/gcc/APKBUILD
++++ b/main/gcc/APKBUILD
+@@ -468,7 +468,7 @@ package() {
+
+ 		# These are moved into packages with arch=$CTARGET_ARCH so remove
+ 		# cross prefix
+-		mv "$pkgdir"/usr/$CTARGET/lib/*.so.* "$pkgdir"/usr/lib/
++		mv "$pkgdir"/usr/$CTARGET/lib/*.so.* "$pkgdir"/usr/lib/ || true
+
+ 		# fixup gcc library symlinks to be linker scripts so
+ 		# linker finds the libs from relocated sysroot
