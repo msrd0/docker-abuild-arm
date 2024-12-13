@@ -11,8 +11,8 @@ jobs:
       fail-fast: false
       matrix:
         arch: ["aarch64", "armhf", "armv7"]
-        alpine_version: ["3.19", "3.20"]
-        latest_alpine_version: ["3.20"]
+        alpine_version: ["3.19", "3.20", "3.21"]
+        latest_alpine_version: ["3.21"]
     steps:
       - uses: actions/checkout@v4
       
