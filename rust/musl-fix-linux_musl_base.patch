@@ -4,14 +4,13 @@ Subject: [PATCH] Fix linux_musl_base for native musl host
 
 See https://github.com/rust-lang/rust/pull/40113
 
-diff -Naur rustc-1.75.0-src.orig/compiler/rustc_target/src/spec/base/linux_musl.rs rustc-1.75.0-src/compiler/rustc_target/src/spec/base/linux_musl.rs
---- rustc-1.75.0-src.orig/compiler/rustc_target/src/spec/base/linux_musl.rs	2024-01-19 10:27:17.735163633 +0100
-+++ rustc-1.75.0-src/compiler/rustc_target/src/spec/base/linux_musl.rs	2024-01-19 10:28:30.779887528 +0100
+--- a/compiler/rustc_target/src/spec/base/linux_musl.rs
++++ b/compiler/rustc_target/src/spec/base/linux_musl.rs
 @@ -1,15 +1,12 @@
--use crate::spec::{base, crt_objects, LinkSelfContainedDefault, TargetOptions};
-+use crate::spec::{base, TargetOptions};
+-use crate::spec::{LinkSelfContainedDefault, TargetOptions, base, crt_objects};
++use crate::spec::{TargetOptions, base};
  
- pub fn opts() -> TargetOptions {
+ pub(crate) fn opts() -> TargetOptions {
      let mut base = base::linux::opts();
  
      base.env = "musl".into();
@@ -25,13 +24,15 @@ diff -Naur rustc-1.75.0-src.orig/compiler/rustc_target/src/spec/base/linux_musl.
  
      base
  }
-diff -Naur rustc-1.75.0-src.orig/compiler/rustc_target/src/spec/crt_objects.rs rustc-1.75.0-src/compiler/rustc_target/src/spec/crt_objects.rs
---- rustc-1.75.0-src.orig/compiler/rustc_target/src/spec/crt_objects.rs	2024-01-19 10:27:17.746163591 +0100
-+++ rustc-1.75.0-src/compiler/rustc_target/src/spec/crt_objects.rs	2024-01-19 10:27:30.341115881 +0100
-@@ -61,28 +61,6 @@
-     ])
- }
- 
+--- a/compiler/rustc_target/src/spec/crt_objects.rs
++++ b/compiler/rustc_target/src/spec/crt_objects.rs
+@@ -58,28 +61,6 @@
+         (LinkOutputKind::StaticPicExe, &[obj]),
+         (LinkOutputKind::DynamicDylib, &[obj]),
+         (LinkOutputKind::StaticDylib, &[obj]),
+-    ])
+-}
+-
 -pub(super) fn pre_musl_self_contained() -> CrtObjects {
 -    new(&[
 -        (LinkOutputKind::DynamicNoPicExe, &["crt1.o", "crti.o", "crtbegin.o"]),
@@ -51,9 +52,6 @@ diff -Naur rustc-1.75.0-src.orig/compiler/rustc_target/src/spec/crt_objects.rs r
 -        (LinkOutputKind::StaticPicExe, &["crtendS.o", "crtn.o"]),
 -        (LinkOutputKind::DynamicDylib, &["crtendS.o", "crtn.o"]),
 -        (LinkOutputKind::StaticDylib, &["crtendS.o", "crtn.o"]),
--    ])
--}
--
- pub(super) fn pre_mingw_self_contained() -> CrtObjects {
-     new(&[
-         (LinkOutputKind::DynamicNoPicExe, &["crt2.o", "rsbegin.o"]),
+     ])
+ }
+ 
