@@ -284,6 +284,7 @@ stdlib() {
 _stdlib_arm() {
 	pkgdesc="Standard library for Rust ($_ctarget target)"
 	depends="gcc-$_ctarget"
+	options="$options !tracedeps"
 	
 	mkdir -p "$subpkgdir/usr"
 	tar xf "$builddir"/build/dist/rust-std-${pkgver}-${_arm}.tar.gz \
