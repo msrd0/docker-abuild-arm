@@ -10,6 +10,7 @@ pkgname=rust
 pkgver=1.83.0
 _llvmver=18
 [ "$ALPINE_VERSION" == "3.21" ] && _llvmver=19
+[ "$ALPINE_VERSION" == "3.22" ] && _llvmver=20
 _bootver=1.82.0
 pkgrel=0
 pkgdesc="The Rust Programming Language"
